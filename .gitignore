@@ -1,0 +1,22 @@
+# Large Datasets #
+##################
+
+SLM/datasets/tinystories/*.npy
+SLM/datasets/tinystories/*.txt
+SLM/datasets/rhm/
+
+# TODO: fix processing scripts #
+################################
+
+results/proc_unigram.ipynb
+results/proc_learning-curves.ipynb
+results/proc_correlations.ipynb
+results/proc_tinystories_hp_*.ipynb
+
+results/tinystories/CovSVD_*.pdf
+results/tinystories/trained
+results/tinystories/correlations/correlations_*
+results/tinystories/correlations/CovSVD_*
+
+running_scripts/slm_*
+running_script/run_slm.sh

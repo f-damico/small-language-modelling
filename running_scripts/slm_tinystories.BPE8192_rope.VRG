@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#SBATCH --job-name tinystories.BPE8192_rope__insert_name_	# Assign unique name
+#SBATCH --chdir /scratch/cagnetta/			# go to scratch
+#SBATCH -o /home/cagnetta/kuma/running/%A.%x_%a.out	# STDOUT
+#SBATCH -e /home/cagnetta/kuma/running/%A.%x_%a.err	# STDERR
+
+#SBATCH --partition=h100
+#SBATCH --cpus-per-task=16
+#SBATCH --gres gpu:1
+#SBATCH --mem 64G
+#SBATCH --time 48:00:00
+#SBATCH --array=0-3%4
+
+dataset=tinystories
+version=BPE8192
+
+block_size=_insert_T_
+batch_size=_insert_bs_
+train_size=_insert_P_
+val_size=524288
+
+d_embedding=_insert_de_
+n_heads=_insert_nh_
+ffwd_size=4
+depth=_insert_depth_
+
+optim=adam
+lr=_insert_lr_
+warmup_time=8
+decay_time=_insert_dt_
+max_epochs=_insert_ep_
+
+print=1024
+save=2
+
+path="${SLURM_JOB_NAME}"	# create directory with ID
+mkdir -p $path
+cd $path
+
+seed=$(od -An -N3 -i /dev/random | tr -d '[:space:]')
+
+echo STARTING AT `date`
+
+source /home/cagnetta/venvs/rhm/bin/activate
+stdbuf -o0 -e0 python /home/cagnetta/kuma/small-language-modelling/SLM/main.py --device cuda --dataset ${dataset}.${version} --path /home/cagnetta/kuma/small-language-modelling/SLM/datasets/${dataset}/ --tokenizer ${dataset}.${version}.meta.json --block_size ${block_size} --batch_size ${batch_size} --train_size ${train_size} --val_size ${val_size} --depth ${depth} --d_embedding ${d_embedding} --n_heads ${n_heads} --ffwd_size ${ffwd_size} --rope --seed_model ${seed} --lr ${lr} --optim ${optim} --scheduler cosine --warmup_time ${warmup_time} --decay_time ${decay_time} --max_epochs ${max_epochs} --print_freq ${print} --save_freq ${save} --loss_by_token --outname ${dataset}.${version}_T${block_size}_P${train_size}_d${depth}_demb${d_embedding}_nh${n_heads}_bs${batch_size}_lr${lr}_wt${warmup_time}_dt${decay_time}_${seed} >> /home/cagnetta/kuma/running/dynamics_${train_size}_d${depth}_e${d_embedding}_${seed}.log
+
+echo FINISHED AT `date`
