@@ -57,7 +57,7 @@ def run( args):
             prob_right = right.to(torch.float32)/P
             prob_left = left.to(torch.float32)/P
             prob_joint = joint.to(torch.float32)/P
-            corr = (prob_joint-right[:,None]@left[None,:]).std()
+            corr = (prob_joint-prob_right[:,None]@prob_left[None,:]).std()
 
             print(f'saving at {P} data')
             torch.save(
