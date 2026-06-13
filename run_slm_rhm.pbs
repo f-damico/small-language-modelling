@@ -1,0 +1,262 @@
+#!/bin/bash
+#PBS -N lm_ntp_gpt2
+#PBS -q gpuq-longrun
+#PBS -J 0-1
+#PBS -l select=1:ncpus=4:ngpus=1:mem=256gb
+#PBS -l walltime=1000:00:00
+#PBS -j oe
+#PBS -o pbs_logs/
+
+set -eo pipefail
+
+REPO_DIR="${PBS_O_WORKDIR:-$PWD}"
+RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/SLM/main.py}"
+DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"
+RUN_NAME="${RUN_NAME:-small_lm_rhm_default}"
+RESULTS_ROOT="${RESULTS_ROOT:-$REPO_DIR/results}"
+
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+DEVICE="${DEVICE:-cuda}"
+
+# -----------------------------------------------------------------------------
+# Dataset: RHM is the default. For text, set DATASET, TOKENIZER and BLOCK_SIZE.
+# Online RHM sampling is enabled by default and always uses one fixed rule tree.
+# -----------------------------------------------------------------------------
+DATASET="${DATASET:-rhm}"
+ONLINE="${ONLINE:-true}"
+REPLACEMENT="${REPLACEMENT:-false}" # Offline RHM only: true allows duplicate samples; ignored when ONLINE=true
+DATASET_PATH="${DATASET_PATH:-$REPO_DIR/SLM/datasets}"
+TOKENIZER="${TOKENIZER:-}"
+BLOCK_SIZE="${BLOCK_SIZE:-}"
+
+######################################################
+
+NUM_FEATURES="${NUM_FEATURES:-64}"     # v
+NUM_CLASSES="${NUM_CLASSES:-64}"       # n = v
+NUM_SYNONYMS="${NUM_SYNONYMS:-5}"      # m
+TUPLE_SIZE="${TUPLE_SIZE:-2}"          # s
+NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM L; d=s^L is derived in Python 
+
+# NUM_FEATURES="${NUM_FEATURES:-8}"   
+# NUM_CLASSES="${NUM_CLASSES:-8}"
+# NUM_SYNONYMS="${NUM_SYNONYMS:-5}"   
+# TUPLE_SIZE="${TUPLE_SIZE:-3}"       
+# NUM_LAYERS="${NUM_LAYERS:-5}"       
+   
+# NUM_FEATURES="${NUM_FEATURES:-8}"   
+# NUM_CLASSES="${NUM_CLASSES:-8}"
+# NUM_SYNONYMS="${NUM_SYNONYMS:-4}"   
+# TUPLE_SIZE="${TUPLE_SIZE:-3}"       
+# NUM_LAYERS="${NUM_LAYERS:-4}"
+
+# NUM_FEATURES="${NUM_FEATURES:-8}"   
+# NUM_CLASSES="${NUM_CLASSES:-8}"
+# NUM_SYNONYMS="${NUM_SYNONYMS:-3}"   
+# TUPLE_SIZE="${TUPLE_SIZE:-3}"       
+# NUM_LAYERS="${NUM_LAYERS:-3}"
+
+
+DEPTH="${DEPTH:-12}"
+
+######################################################
+
+
+SEED_RULES="${SEED_RULES:-0}"
+SEED_SAMPLE="${SEED_SAMPLE:-0}"
+
+
+# Architecture. The original gpt2 implementation is left unchanged.
+MODEL="${MODEL:-transformer_v2}"   # gpt2, transformer_v2, or mamba
+D_EMBEDDING="${D_EMBEDDING:-256}"  # Token/residual-stream dimension; used by both Transformer and Mamba
+N_HEADS="${N_HEADS:-4}"            # Transformer only: number of attention heads; D_EMBEDDING must be divisible by N_HEADS
+FFWD_SIZE="${FFWD_SIZE:-4}"        # Transformer only: MLP width multiplier; hidden dimension = FFWD_SIZE * D_EMBEDDING
+ROPE="${ROPE:-false}"              # Transformer only: true uses rotary positional embeddings; false uses learned absolute positions
+MUP="${MUP:-true}"                 # transformer_v2 only: use the notebook muP-style initialization and attention scaling
+EMBEDDING_SCALE="${EMBEDDING_SCALE:-0.05}"  # transformer_v2 only: std of token/position embedding initialization
+D_STATE="${D_STATE:-16}"           # Mamba only: dimension of the internal SSM state associated with each channel
+D_CONV="${D_CONV:-4}"              # Mamba only: kernel size of the causal depthwise convolution inside each Mamba block
+MAMBA_EXPAND="${MAMBA_EXPAND:-2}"  # Mamba only: internal-width multiplier; d_inner = MAMBA_EXPAND * D_EMBEDDING
+SEED_MODEL="${SEED_MODEL:-0}"
+
+
+# Training and finite validation references.
+BATCH_SIZE="${BATCH_SIZE:-32}"
+EVAL_BATCH_SIZE="${EVAL_BATCH_SIZE:-32}"
+VAL_SIZE="${VAL_SIZE:-32768}"
+EVAL_TRAIN_SIZE="${EVAL_TRAIN_SIZE:-16384}"
+EVAL_VAL_SIZE="${EVAL_VAL_SIZE:-16384}"
+MAX_STEPS="${MAX_STEPS:-100000}"
+LR="${LR:-0.001}"
+L2="${L2:-0.01}"
+SCHEDULER="${SCHEDULER:-none}"
+DROPOUT="${DROPOUT:-0.0}"
+WARMUP_TIME="${WARMUP_TIME:-0}"
+DECAY_TIME="${DECAY_TIME:-$MAX_STEPS}"
+DECAY_FACTOR="${DECAY_FACTOR:-0.0}"
+PRINT_FREQ="${PRINT_FREQ:-100}"
+LOSS_THRESHOLD="${LOSS_THRESHOLD:-}"
+
+# Logarithmically spaced validation and weight saving, from step 1 to MAX_STEPS.
+NUM_VALIDATIONS="${NUM_VALIDATIONS:-100}"
+NUM_WEIGHT_SAVES="${NUM_WEIGHT_SAVES:-100}"
+SAVE_FREQ="${SAVE_FREQ:-1000}"       # only used when NUM_VALIDATIONS=0
+SAVE_RUN_DATA="${SAVE_RUN_DATA:-true}"
+MEASURE_TRAIN="${MEASURE_TRAIN:-true}"
+
+# Exact RHM level diagnostics on fixed finite references from the same rule tree.
+COMPUTE_RHM_DIAGNOSTICS="${COMPUTE_RHM_DIAGNOSTICS:-true}"
+M_L_MAX_TRAIN_SAMPLES="${M_L_MAX_TRAIN_SAMPLES:-16384}"
+M_L_MAX_VAL_SAMPLES="${M_L_MAX_VAL_SAMPLES:-16384}"
+M_L_BATCH_SIZE="${M_L_BATCH_SIZE:-256}"
+
+# A PBS array can sweep P by adding values and changing #PBS -J above.
+TRAIN_SIZES=(
+  65536
+)
+
+ARRAY_INDEX="${PBS_ARRAY_INDEX:-0}"
+if [ "$ARRAY_INDEX" -ge "${#TRAIN_SIZES[@]}" ]; then
+    echo "[ERROR] PBS_ARRAY_INDEX=$ARRAY_INDEX outside TRAIN_SIZES" >&2
+    exit 1
+fi
+TRAIN_SIZE="${TRAIN_SIZES[$ARRAY_INDEX]}"
+
+JOB_ID="${PBS_JOBID:-no_jobid}"
+RUN_ID="${DATASET}_${MODEL}_P_${TRAIN_SIZE}_seed_rules_${SEED_RULES}_seed_sample_${SEED_SAMPLE}_seed_model_${SEED_MODEL}"
+OUTPUT_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
+ARRAY_LOG="$REPO_DIR/pbs_logs/${RUN_NAME}_${JOB_ID}_idx_${ARRAY_INDEX}_P_${TRAIN_SIZE}.log"
+RUN_LOG="$OUTPUT_DIR/run.log"
+
+mkdir -p "$REPO_DIR/pbs_logs" "$OUTPUT_DIR" "$RESULTS_ROOT"
+cd "$REPO_DIR"
+
+if command -v module >/dev/null 2>&1; then
+    module purge || true
+fi
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    conda activate "$CONDA_ENV_NAME"
+else
+    source activate "$CONDA_ENV_NAME"
+fi
+
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+
+{
+    echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[INFO] host=$(hostname)"
+    echo "[INFO] repo_dir=$REPO_DIR"
+    echo "[INFO] run_script=$RUN_SCRIPT"
+    echo "[INFO] output_dir=$OUTPUT_DIR"
+    echo "[INFO] dataset=$DATASET online=$ONLINE model=$MODEL"
+    echo "[INFO] train_size=$TRAIN_SIZE val_size=$VAL_SIZE max_steps=$MAX_STEPS"
+    echo "[INFO] batch_size=$BATCH_SIZE eval_batch_size=$EVAL_BATCH_SIZE"
+    echo "[INFO] RHM: v=$NUM_FEATURES n=$NUM_CLASSES m=$NUM_SYNONYMS s=$TUPLE_SIZE L=$NUM_LAYERS"
+    echo "[INFO] architecture: depth=$DEPTH d_embedding=$D_EMBEDDING n_heads=$N_HEADS"
+    echo "[INFO] num_validations=$NUM_VALIDATIONS num_weight_saves=$NUM_WEIGHT_SAVES"
+    echo "[INFO] compute_rhm_diagnostics=$COMPUTE_RHM_DIAGNOSTICS"
+    echo "[INFO] python=$(command -v "$PYTHON_BIN")"
+    "$PYTHON_BIN" --version
+    if command -v nvidia-smi >/dev/null 2>&1; then nvidia-smi || true; fi
+    "$PYTHON_BIN" - <<'PY' || true
+import torch
+print('torch =', torch.__version__)
+print('cuda runtime =', torch.version.cuda)
+print('cuda available =', torch.cuda.is_available())
+if torch.cuda.is_available():
+    print('gpu =', torch.cuda.get_device_name(0))
+PY
+} | tee -a "$ARRAY_LOG" "$RUN_LOG"
+
+if [ ! -f "$RUN_SCRIPT" ]; then
+    echo "[ERROR] Missing $RUN_SCRIPT" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+    exit 1
+fi
+
+CMD=(
+    "$PYTHON_BIN" -u "$RUN_SCRIPT"
+    --device "$DEVICE"
+    --dataset "$DATASET"
+    --path "$DATASET_PATH"
+    --model "$MODEL"
+    --train_size "$TRAIN_SIZE"
+    --val_size "$VAL_SIZE"
+    --batch_size "$BATCH_SIZE"
+    --eval_batch_size "$EVAL_BATCH_SIZE"
+    --eval_train_size "$EVAL_TRAIN_SIZE"
+    --eval_val_size "$EVAL_VAL_SIZE"
+    --max_steps "$MAX_STEPS"
+    --lr "$LR"
+    --scheduler "$SCHEDULER"
+    --warmup_time "$WARMUP_TIME"
+    --decay_time "$DECAY_TIME"
+    --decay_factor "$DECAY_FACTOR"
+    --dropout "$DROPOUT"
+    --l2 "$L2"
+    --print_freq "$PRINT_FREQ"
+    --num_validations "$NUM_VALIDATIONS"
+    --num_weight_saves "$NUM_WEIGHT_SAVES"
+    --save_freq "$SAVE_FREQ"
+    --depth "$DEPTH"
+    --d_embedding "$D_EMBEDDING"
+    --n_heads "$N_HEADS"
+    --ffwd_size "$FFWD_SIZE"
+    --embedding_scale "$EMBEDDING_SCALE"
+    --d_state "$D_STATE"
+    --d_conv "$D_CONV"
+    --mamba_expand "$MAMBA_EXPAND"
+    --seed_model "$SEED_MODEL"
+    --data_root "$DATA_ROOT"
+    --run_name "$RUN_NAME"
+    --output_dir "$OUTPUT_DIR"
+)
+
+if [[ "$ONLINE" == "true" || "$ONLINE" == "1" ]]; then CMD+=(--online); else CMD+=(--offline); fi
+if [[ "$ROPE" == "true" || "$ROPE" == "1" ]]; then CMD+=(--rope); fi
+if [[ "$MUP" == "true" || "$MUP" == "1" ]]; then CMD+=(--mup); else CMD+=(--no_mup); fi
+if [[ "$MEASURE_TRAIN" == "true" || "$MEASURE_TRAIN" == "1" ]]; then CMD+=(--measure_train); fi
+if [[ "$SAVE_RUN_DATA" == "true" || "$SAVE_RUN_DATA" == "1" ]]; then CMD+=(--save_run_data); else CMD+=(--no_save_run_data); fi
+if [ -n "$LOSS_THRESHOLD" ]; then CMD+=(--loss_threshold "$LOSS_THRESHOLD"); fi
+
+if [ "$DATASET" = "rhm" ]; then
+    CMD+=(
+        --num_features "$NUM_FEATURES"
+        --num_classes "$NUM_CLASSES"
+        --num_synonyms "$NUM_SYNONYMS"
+        --tuple_size "$TUPLE_SIZE"
+        --num_layers "$NUM_LAYERS"
+        --seed_rules "$SEED_RULES"
+        --seed_sample "$SEED_SAMPLE"
+        --input_format long
+    )
+    if [[ "$REPLACEMENT" == "true" || "$REPLACEMENT" == "1" ]]; then CMD+=(--replacement); fi
+    if [[ "$COMPUTE_RHM_DIAGNOSTICS" == "true" || "$COMPUTE_RHM_DIAGNOSTICS" == "1" ]]; then
+        CMD+=(
+            --compute_rhm_diagnostics
+            --rhm_margins_max_train_samples "$M_L_MAX_TRAIN_SAMPLES"
+            --rhm_margins_max_val_samples "$M_L_MAX_VAL_SAMPLES"
+            --rhm_margins_batch_size "$M_L_BATCH_SIZE"
+        )
+    fi
+else
+    if [ -z "$TOKENIZER" ] || [ -z "$BLOCK_SIZE" ]; then
+        echo "[ERROR] Text datasets require TOKENIZER and BLOCK_SIZE" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+        exit 1
+    fi
+    CMD+=(--tokenizer "$TOKENIZER" --block_size "$BLOCK_SIZE")
+fi
+
+printf '[CMD] ' | tee -a "$ARRAY_LOG" "$RUN_LOG"
+printf '%q ' "${CMD[@]}" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+printf '\n' | tee -a "$ARRAY_LOG" "$RUN_LOG"
+
+set +e
+"${CMD[@]}" 2>&1 | tee -a "$ARRAY_LOG" "$RUN_LOG"
+STATUS=${PIPESTATUS[0]}
+set -e
+
+echo "[END] status=$STATUS time=$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+exit "$STATUS"

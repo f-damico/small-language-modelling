@@ -1,0 +1,350 @@
+#!/bin/bash
+#PBS -N slm_overlaps
+#PBS -q gpuq-longrun
+#PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
+#PBS -l walltime=1000:00:00
+#PBS -j oe
+#PBS -o pbs_logs/
+
+set -eo pipefail
+
+# =============================================================================
+# Paths
+# =============================================================================
+
+REPO_DIR="${REPO_DIR:-${PBS_O_WORKDIR:-$PWD}}"                              # Repository root.
+SOURCE_DIR="${SOURCE_DIR:-$REPO_DIR/SLM}"                                   # Contains init.py and models/.
+RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/compute_slm_representation_overlaps.py}" # Python overlap script.
+
+DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"                                    # Contains data/<RUN_NAME>/<RUN_ID>/.
+COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}" # Output root.
+
+# =============================================================================
+# Run selection
+# =============================================================================
+
+RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"                                   # Top-level folder under data/.
+RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}" # Leaf run folder.
+RUN_DIR="${RUN_DIR:-}"                                                       # Optional leaf path; overrides RUN_NAME/RUN_ID.
+OUTPUT_NAME="${OUTPUT_NAME:-}"                                               # Folder created under collected_results/.
+
+# =============================================================================
+# Overlap options
+# =============================================================================
+
+OVERLAP_TARGET="${OVERLAP_TARGET:-representations}"                         # representations | weights
+METRIC="${METRIC:-gram}"                                                    # gram | feature
+REPRESENTATION_MODE="${REPRESENTATION_MODE:-block_update}"                  # state | block_update
+REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}"                                # auto | saved | generate
+
+SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-512}"                               # Fixed train sequences for CKA.
+SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-512}"                               # Fixed validation sequences for CKA.
+SUBSET_SEED="${SUBSET_SEED:-12345}"                                         # Fixed subset/generation seed.
+BATCH_SIZE="${BATCH_SIZE:-256}"                                             # Representation forward batch size.
+
+NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"                                     # 0 means every checkpoint.
+MAX_STEP="${MAX_STEP:-}"                                                     # Optional largest checkpoint step.
+
+INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"                                 # State mode only.
+INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}"                               # State mode only.
+
+TEMP_ROOT="${TEMP_ROOT:-}"                                                   # Optional scratch root.
+KEEP_TEMP="${KEEP_TEMP:-0}"                                                 # 1 keeps temporary CKA matrices.
+
+# =============================================================================
+# Runtime
+# =============================================================================
+
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"                                     # Conda environment.
+PYTHON_BIN="${PYTHON_BIN:-python}"                                          # Python executable.
+DEVICE="${DEVICE:-cuda}"                                                    # cuda | cpu
+
+JOB_ID="${PBS_JOBID:-no_jobid}"
+
+mkdir -p "$REPO_DIR/pbs_logs"
+mkdir -p "$COLLECTED_RESULTS_ROOT"
+
+cd "$REPO_DIR"
+
+JOB_LOG="$REPO_DIR/pbs_logs/slm_overlaps_${JOB_ID}.log"
+
+if command -v module >/dev/null 2>&1; then
+    module purge || true
+fi
+
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export MKL_INTERFACE_LAYER="${MKL_INTERFACE_LAYER:-GNU}"
+
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    conda activate "$CONDA_ENV_NAME"
+else
+    source activate "$CONDA_ENV_NAME"
+fi
+
+set -u
+
+# Some PBS systems expose a GPU UUID instead of a numeric CUDA index.
+ORIGINAL_CVD="${CUDA_VISIBLE_DEVICES:-unset}"
+
+if [[ "$ORIGINAL_CVD" == GPU-* ]]; then
+    GPU_INDEX="$(
+        "$PYTHON_BIN" - <<'PY'
+import os
+import subprocess
+
+uuid = os.environ.get(
+    "CUDA_VISIBLE_DEVICES",
+    "",
+).strip()
+
+rows = subprocess.check_output(
+    [
+        "nvidia-smi",
+        "--query-gpu=index,uuid",
+        "--format=csv,noheader",
+    ],
+    text=True,
+)
+
+for row in rows.splitlines():
+    index, full_uuid = [
+        item.strip()
+        for item in row.split(",")
+    ]
+
+    if (
+        full_uuid == uuid
+        or full_uuid.startswith(uuid)
+    ):
+        print(index)
+        break
+PY
+    )"
+
+    if [ -n "$GPU_INDEX" ]; then
+        export CUDA_VISIBLE_DEVICES="$GPU_INDEX"
+    fi
+fi
+
+if [ -n "$RUN_DIR" ]; then
+    RESOLVED_RUN_DIR="$RUN_DIR"
+else
+    RESOLVED_RUN_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
+fi
+
+{
+    echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[INFO] host=$(hostname)"
+    echo "[INFO] repo_dir=$REPO_DIR"
+    echo "[INFO] source_dir=$SOURCE_DIR"
+    echo "[INFO] run_script=$RUN_SCRIPT"
+    echo "[INFO] data_root=$DATA_ROOT"
+    echo "[INFO] collected_results_root=$COLLECTED_RESULTS_ROOT"
+
+    echo "[INFO] run_name=$RUN_NAME"
+    echo "[INFO] run_id=$RUN_ID"
+    echo "[INFO] run_dir_override=${RUN_DIR:-unset}"
+    echo "[INFO] resolved_run_dir=$RESOLVED_RUN_DIR"
+    echo "[INFO] output_name=${OUTPUT_NAME:-auto}"
+
+    echo "[INFO] overlap_target=$OVERLAP_TARGET"
+    echo "[INFO] metric=$METRIC"
+    echo "[INFO] representation_mode=$REPRESENTATION_MODE"
+    echo "[INFO] reference_source=$REFERENCE_SOURCE"
+
+    echo "[INFO] subset_train_size=$SUBSET_TRAIN_SIZE"
+    echo "[INFO] subset_valid_size=$SUBSET_VALID_SIZE"
+    echo "[INFO] subset_seed=$SUBSET_SEED"
+    echo "[INFO] batch_size=$BATCH_SIZE"
+
+    echo "[INFO] num_checkpoints=$NUM_CHECKPOINTS"
+    echo "[INFO] max_step=${MAX_STEP:-none}"
+
+    echo "[INFO] include_embedding=$INCLUDE_EMBEDDING"
+    echo "[INFO] include_final_norm=$INCLUDE_FINAL_NORM"
+    echo "[INFO] temp_root=${TEMP_ROOT:-output_directory}"
+    echo "[INFO] keep_temp=$KEEP_TEMP"
+
+    echo "[INFO] device=$DEVICE"
+    echo "[INFO] conda_env=$CONDA_ENV_NAME"
+    echo "[INFO] original_cuda_visible_devices=$ORIGINAL_CVD"
+    echo "[INFO] cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-unset}"
+
+    "$PYTHON_BIN" - <<'PY' || true
+import torch
+
+print(
+    "[INFO] torch=",
+    torch.__version__,
+)
+
+print(
+    "[INFO] cuda_available=",
+    torch.cuda.is_available(),
+)
+
+if torch.cuda.is_available():
+    print(
+        "[INFO] gpu=",
+        torch.cuda.get_device_name(0),
+    )
+PY
+
+} | tee -a "$JOB_LOG"
+
+if [ ! -f "$RUN_SCRIPT" ]; then
+    echo "[ERROR] Missing overlap script: $RUN_SCRIPT" |
+        tee -a "$JOB_LOG"
+    exit 1
+fi
+
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo "[ERROR] Missing source directory: $SOURCE_DIR" |
+        tee -a "$JOB_LOG"
+    exit 1
+fi
+
+if [ ! -d "$RESOLVED_RUN_DIR" ]; then
+    echo "[ERROR] Missing run directory: $RESOLVED_RUN_DIR" |
+        tee -a "$JOB_LOG"
+    exit 1
+fi
+
+if [ ! -d "$RESOLVED_RUN_DIR/checkpoints" ]; then
+    echo "[ERROR] Missing checkpoint directory: $RESOLVED_RUN_DIR/checkpoints" |
+        tee -a "$JOB_LOG"
+    exit 1
+fi
+
+# =============================================================================
+# Build Python command
+# =============================================================================
+
+CMD=(
+    "$PYTHON_BIN" -u "$RUN_SCRIPT"
+
+    --repo_dir "$REPO_DIR"
+    --source_dir "$SOURCE_DIR"
+
+    --data_root "$DATA_ROOT"
+    --collected_results_root "$COLLECTED_RESULTS_ROOT"
+
+    --device "$DEVICE"
+
+    --overlap_target "$OVERLAP_TARGET"
+    --metric "$METRIC"
+    --representation_mode "$REPRESENTATION_MODE"
+    --reference_source "$REFERENCE_SOURCE"
+
+    --subset_train_size "$SUBSET_TRAIN_SIZE"
+    --subset_valid_size "$SUBSET_VALID_SIZE"
+    --subset_seed "$SUBSET_SEED"
+    --batch_size "$BATCH_SIZE"
+
+    --num_checkpoints "$NUM_CHECKPOINTS"
+)
+
+if [ -n "$RUN_DIR" ]; then
+    CMD+=(
+        --run_dir "$RUN_DIR"
+    )
+else
+    CMD+=(
+        --run_name "$RUN_NAME"
+        --run_id "$RUN_ID"
+    )
+fi
+
+if [ -n "$OUTPUT_NAME" ]; then
+    CMD+=(
+        --output_name "$OUTPUT_NAME"
+    )
+fi
+
+if [ -n "$MAX_STEP" ]; then
+    CMD+=(
+        --max_step "$MAX_STEP"
+    )
+fi
+
+if [ -n "$TEMP_ROOT" ]; then
+    CMD+=(
+        --temp_root "$TEMP_ROOT"
+    )
+fi
+
+case "${INCLUDE_EMBEDDING,,}" in
+    1|true|yes|y)
+        CMD+=(
+            --include_embedding
+        )
+        ;;
+
+    0|false|no|n)
+        CMD+=(
+            --no_include_embedding
+        )
+        ;;
+
+    *)
+        echo "[ERROR] Invalid INCLUDE_EMBEDDING=$INCLUDE_EMBEDDING" |
+            tee -a "$JOB_LOG"
+        exit 1
+        ;;
+esac
+
+case "${INCLUDE_FINAL_NORM,,}" in
+    1|true|yes|y)
+        CMD+=(
+            --include_final_norm
+        )
+        ;;
+
+    0|false|no|n)
+        CMD+=(
+            --no_include_final_norm
+        )
+        ;;
+
+    *)
+        echo "[ERROR] Invalid INCLUDE_FINAL_NORM=$INCLUDE_FINAL_NORM" |
+            tee -a "$JOB_LOG"
+        exit 1
+        ;;
+esac
+
+case "${KEEP_TEMP,,}" in
+    1|true|yes|y)
+        CMD+=(
+            --keep_temp
+        )
+        ;;
+
+    0|false|no|n)
+        ;;
+
+    *)
+        echo "[ERROR] Invalid KEEP_TEMP=$KEEP_TEMP" |
+            tee -a "$JOB_LOG"
+        exit 1
+        ;;
+esac
+
+{
+    echo "[CMD] ${CMD[*]}"
+    echo "[RUN] launching overlap computation"
+} | tee -a "$JOB_LOG"
+
+"${CMD[@]}" 2>&1 |
+    tee -a "$JOB_LOG"
+
+RETURN_CODE=${PIPESTATUS[0]}
+
+echo \
+    "[END] $(date '+%Y-%m-%d %H:%M:%S') return_code=$RETURN_CODE" |
+    tee -a "$JOB_LOG"
+
+exit "$RETURN_CODE"

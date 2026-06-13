@@ -1,0 +1,182 @@
+[START] 2026-06-12 12:58:04
+[INFO] host=dhler2u04-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] dataset=rhm online=true model=transformer_v2
+[INFO] train_size=65536 val_size=32768 max_steps=100000
+[INFO] batch_size=32 eval_batch_size=32
+[INFO] RHM: v=8 n=8 m=5 s=3 L=5
+[INFO] architecture: depth=10 d_embedding=256 n_heads=4
+[INFO] num_validations=100 num_weight_saves=100
+[INFO] compute_rhm_diagnostics=true
+[INFO] python=/home/2a/mb12724/miniconda3/envs/rhm/bin/python
+Python 3.10.20
+Fri Jun 12 12:58:04 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.57.02    Driver Version: 470.57.02    CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla V100-SXM2...  On   | 00000000:3B:00.0 Off |                    0 |
+| N/A   31C    P0    41W / 300W |     15MiB / 32510MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|    0   N/A  N/A      2375      G   /usr/libexec/Xorg                  14MiB |
++-----------------------------------------------------------------------------+
+torch = 2.3.1+cu118
+cuda runtime = 11.8
+cuda available = True
+gpu = Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py --device cuda --dataset rhm --path /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/datasets --model transformer_v2 --train_size 65536 --val_size 32768 --batch_size 32 --eval_batch_size 32 --eval_train_size 16384 --eval_val_size 16384 --max_steps 100000 --lr 0.001 --scheduler none --warmup_time 0 --decay_time 100000 --decay_factor 0.0 --dropout 0.0 --l2 0.01 --print_freq 100 --num_validations 100 --num_weight_saves 100 --save_freq 1000 --depth 10 --d_embedding 256 --n_heads 4 --ffwd_size 4 --embedding_scale 0.05 --d_state 16 --d_conv 4 --mamba_expand 2 --seed_model 1 --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --run_name slm_TR2_uniform_L5_v1 --output_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1 --online --mup --measure_train --save_run_data --num_features 8 --num_classes 8 --num_synonyms 5 --tuple_size 3 --num_layers 5 --seed_rules 1 --seed_sample 1 --input_format long --compute_rhm_diagnostics --rhm_margins_max_train_samples 16384 --rhm_margins_max_val_samples 16384 --rhm_margins_batch_size 256 
+================================================================================
+dataset=rhm model=transformer_v2 online=True
+output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+RHM v=8 n=8 m=5 s=3 L=5 d=243
+architecture depth=10 d_embedding=256 n_heads=4
+log saves: validations=100, weights=100; RHM diagnostics=True
+================================================================================
+RHM: v=8, n=8, m=5, s=3, L=5, d=243, pmax=30092655381050560203999655352889489352157838253365440550624043680727481842041015625000, online=True
+Training for 100000 optimizer steps
+# parameters: 7298312
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] validation steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 37, 41, 46, 52, 59, 66, 74, 83, 93, 105, 118, 132, 148, 167, 187, 210, 236, 266, 298, 335, 376, 423, 475, 534, 599, 673, 756, 850, 955, 1072, 1205, 1353, 1520, 1707, 1918, 2154, 2420, 2719, 3054, 3430, 3854, 4329, 4863, 5462, 6136, 6893, 7743, 8697, 9770, 10975, 12328, 13849, 15557, 17475, 19630, 22051, 24771, 27826, 31257, 35112, 39442, 44306, 49770, 55908, 62803, 70548, 79248, 89022, 100000]
+[INFO] weight checkpoint steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 37, 41, 46, 52, 59, 66, 74, 83, 93, 105, 118, 132, 148, 167, 187, 210, 236, 266, 298, 335, 376, 423, 475, 534, 599, 673, 756, 850, 955, 1072, 1205, 1353, 1520, 1707, 1918, 2154, 2420, 2719, 3054, 3430, 3854, 4329, 4863, 5462, 6136, 6893, 7743, 8697, 9770, 10975, 12328, 13849, 15557, 17475, 19630, 22051, 24771, 27826, 31257, 35112, 39442, 44306, 49770, 55908, 62803, 70548, 79248, 89022, 100000]
+[INFO] RHM diagnostics=True; online=True; dataset=rhm; model=transformer_v2
+[RHM] step=0 train_peeled_loss_l=[1.24107, 0.65619, 0.56411, 0.50374, 0.47146] val_peeled_loss_l=[1.24100, 0.65635, 0.56405, 0.50414, 0.46956]
+[RHM] step=0 train_Mpos_l=[0.34831, 0.53017, 0.70171, 0.77696, 0.81056] val_Mpos_l=[0.34870, 0.53008, 0.70177, 0.77532, 0.81261] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=0 epoch=0.0000 running=2.079442 train_loss=2.080143 val_loss=2.080137 val_acc=0.116993 log_specnorm=-656.882948
+[TRAIN] step=1/100000 epoch=0.0005 loss=2.079286 dt=67.81ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1.pt
+[RHM] step=1 train_peeled_loss_l=[1.19669, 0.77374, 0.67790, 0.60490, 0.57203] val_peeled_loss_l=[1.19637, 0.77473, 0.67830, 0.60437, 0.56913]
+[RHM] step=1 train_Mpos_l=[0.34831, 0.60796, 0.64260, 0.70007, 0.72134] val_Mpos_l=[0.34870, 0.60699, 0.64163, 0.70081, 0.72319] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=1 epoch=0.0005 running=2.079286 train_loss=2.253565 val_loss=2.254136 val_acc=0.161580 log_specnorm=48.393408
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_2.pt
+[RHM] step=2 train_peeled_loss_l=[1.31872, 0.67541, 0.57993, 0.51724, 0.48207] val_peeled_loss_l=[1.31861, 0.67538, 0.57980, 0.51798, 0.48034]
+[RHM] step=2 train_Mpos_l=[0.28303, 0.58781, 0.69799, 0.75732, 0.79165] val_Mpos_l=[0.28335, 0.58765, 0.69756, 0.75470, 0.79364] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=2 epoch=0.0010 running=2.258567 train_loss=2.168106 val_loss=2.168049 val_acc=0.098454 log_specnorm=48.218128
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3.pt
+[RHM] step=3 train_peeled_loss_l=[1.19313, 0.67007, 0.58252, 0.52229, 0.49152] val_peeled_loss_l=[1.19319, 0.67059, 0.58248, 0.52242, 0.48892]
+[RHM] step=3 train_Mpos_l=[0.27139, 0.59582, 0.70658, 0.74556, 0.77855] val_Mpos_l=[0.27126, 0.59572, 0.70595, 0.74581, 0.78013] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=3 epoch=0.0015 running=2.171236 train_loss=2.078973 val_loss=2.078819 val_acc=0.165412 log_specnorm=48.660972
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_4.pt
+[RHM] step=4 train_peeled_loss_l=[1.19426, 0.66392, 0.57683, 0.51582, 0.48437] val_peeled_loss_l=[1.19418, 0.66419, 0.57692, 0.51579, 0.48237]
+[RHM] step=4 train_Mpos_l=[0.31747, 0.59643, 0.69058, 0.74544, 0.77939] val_Mpos_l=[0.31741, 0.59647, 0.68968, 0.74555, 0.78094] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=4 epoch=0.0020 running=2.080038 train_loss=2.069438 val_loss=2.069674 val_acc=0.169367 log_specnorm=49.549596
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_5.pt
+[RHM] step=5 train_peeled_loss_l=[1.23890, 0.65855, 0.57062, 0.50725, 0.47498] val_peeled_loss_l=[1.23870, 0.65868, 0.57068, 0.50761, 0.47342]
+[RHM] step=5 train_Mpos_l=[0.28520, 0.58102, 0.69142, 0.75243, 0.78542] val_Mpos_l=[0.28547, 0.58134, 0.69085, 0.75147, 0.78811] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=5 epoch=0.0024 running=2.061140 train_loss=2.084809 val_loss=2.085005 val_acc=0.109096 log_specnorm=50.381302
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_6.pt
+[RHM] step=6 train_peeled_loss_l=[1.18213, 0.67934, 0.59430, 0.52961, 0.49848] val_peeled_loss_l=[1.18197, 0.67992, 0.59453, 0.52939, 0.49617]
+[RHM] step=6 train_Mpos_l=[0.27139, 0.57968, 0.69060, 0.75205, 0.78238] val_Mpos_l=[0.27126, 0.57945, 0.69003, 0.75227, 0.78344] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=6 epoch=0.0029 running=2.084433 train_loss=2.085005 val_loss=2.085227 val_acc=0.169367 log_specnorm=51.042070
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_7.pt
+[RHM] step=7 train_peeled_loss_l=[1.22046, 0.65367, 0.56345, 0.50597, 0.47496] val_peeled_loss_l=[1.22060, 0.65398, 0.56332, 0.50624, 0.47251]
+[RHM] step=7 train_Mpos_l=[0.27139, 0.60073, 0.70941, 0.76357, 0.79084] val_Mpos_l=[0.27126, 0.60079, 0.70917, 0.76312, 0.79322] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=7 epoch=0.0034 running=2.082757 train_loss=2.069729 val_loss=2.069514 val_acc=0.125059 log_specnorm=51.610404
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_8.pt
+[RHM] step=8 train_peeled_loss_l=[1.21973, 0.65398, 0.56196, 0.50461, 0.47315] val_peeled_loss_l=[1.21983, 0.65420, 0.56184, 0.50492, 0.47089]
+[RHM] step=8 train_Mpos_l=[0.27139, 0.61597, 0.74430, 0.77814, 0.80808] val_Mpos_l=[0.27126, 0.61593, 0.74457, 0.77867, 0.80948] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=8 epoch=0.0039 running=2.070357 train_loss=2.066804 val_loss=2.066673 val_acc=0.139460 log_specnorm=52.133489
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_9.pt
+[RHM] step=9 train_peeled_loss_l=[1.18735, 0.66921, 0.58012, 0.51778, 0.48629] val_peeled_loss_l=[1.18721, 0.66957, 0.58028, 0.51774, 0.48425]
+[RHM] step=9 train_Mpos_l=[0.39440, 0.59643, 0.68568, 0.74348, 0.77666] val_Mpos_l=[0.39486, 0.59647, 0.68479, 0.74350, 0.77740] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=9 epoch=0.0044 running=2.069236 train_loss=2.068954 val_loss=2.069220 val_acc=0.169367 log_specnorm=52.612887
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_10.pt
+[RHM] step=10 train_peeled_loss_l=[1.20299, 0.66356, 0.57348, 0.51062, 0.47890] val_peeled_loss_l=[1.20279, 0.66382, 0.57363, 0.51070, 0.47713]
+[RHM] step=10 train_Mpos_l=[0.39440, 0.60724, 0.73047, 0.76465, 0.79483] val_Mpos_l=[0.39486, 0.60753, 0.73039, 0.76480, 0.79585] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=10 epoch=0.0049 running=2.070998 train_loss=2.066996 val_loss=2.067307 val_acc=0.169367 log_specnorm=53.044615
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_11.pt
+[RHM] step=11 train_peeled_loss_l=[1.22107, 0.65764, 0.56734, 0.50567, 0.47397] val_peeled_loss_l=[1.22094, 0.65781, 0.56738, 0.50593, 0.47224]
+[RHM] step=11 train_Mpos_l=[0.31747, 0.58340, 0.70381, 0.76470, 0.79761] val_Mpos_l=[0.31741, 0.58371, 0.70352, 0.76530, 0.79857] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=11 epoch=0.0054 running=2.068119 train_loss=2.068798 val_loss=2.068957 val_acc=0.169367 log_specnorm=53.436077
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_12.pt
+[RHM] step=12 train_peeled_loss_l=[1.19119, 0.66349, 0.57652, 0.51507, 0.48408] val_peeled_loss_l=[1.19112, 0.66383, 0.57658, 0.51514, 0.48204]
+[RHM] step=12 train_Mpos_l=[0.27139, 0.59588, 0.71654, 0.75949, 0.78952] val_Mpos_l=[0.27126, 0.59606, 0.71627, 0.75961, 0.79195] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=12 epoch=0.0059 running=2.066987 train_loss=2.062769 val_loss=2.062870 val_acc=0.173248 log_specnorm=53.784279
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_13.pt
+[RHM] step=13 train_peeled_loss_l=[1.19107, 0.66402, 0.57613, 0.51617, 0.48523] val_peeled_loss_l=[1.19109, 0.66441, 0.57612, 0.51629, 0.48292]
+[RHM] step=13 train_Mpos_l=[0.27139, 0.59588, 0.72777, 0.76695, 0.79795] val_Mpos_l=[0.27126, 0.59606, 0.72753, 0.76703, 0.79981] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=13 epoch=0.0063 running=2.061434 train_loss=2.065452 val_loss=2.065410 val_acc=0.161580 log_specnorm=54.102322
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_14.pt
+[RHM] step=14 train_peeled_loss_l=[1.22763, 0.65213, 0.56189, 0.50455, 0.47312] val_peeled_loss_l=[1.22777, 0.65236, 0.56171, 0.50494, 0.47073]
+[RHM] step=14 train_Mpos_l=[0.27139, 0.60764, 0.73432, 0.77850, 0.80548] val_Mpos_l=[0.27126, 0.60766, 0.73499, 0.77869, 0.80663] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=14 epoch=0.0068 running=2.070919 train_loss=2.071156 val_loss=2.070925 val_acc=0.125059 log_specnorm=54.387077
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_15.pt
+[RHM] step=15 train_peeled_loss_l=[1.20637, 0.65584, 0.56703, 0.50734, 0.47577] val_peeled_loss_l=[1.20637, 0.65618, 0.56703, 0.50751, 0.47347]
+[RHM] step=15 train_Mpos_l=[0.27139, 0.61181, 0.72583, 0.77089, 0.80219] val_Mpos_l=[0.27126, 0.61213, 0.72575, 0.77164, 0.80408] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=15 epoch=0.0073 running=2.072212 train_loss=2.060992 val_loss=2.060954 val_acc=0.169367 log_specnorm=54.643356
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_16.pt
+[RHM] step=16 train_peeled_loss_l=[1.18484, 0.66990, 0.58366, 0.52040, 0.48891] val_peeled_loss_l=[1.18471, 0.67038, 0.58384, 0.52031, 0.48665]
+[RHM] step=16 train_Mpos_l=[0.39331, 0.60003, 0.68527, 0.74831, 0.78163] val_Mpos_l=[0.39376, 0.59974, 0.68427, 0.74812, 0.78301] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=16 epoch=0.0078 running=2.057460 train_loss=2.070729 val_loss=2.070944 val_acc=0.169367 log_specnorm=54.878651
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_17.pt
+[RHM] step=17 train_peeled_loss_l=[1.20984, 0.65463, 0.56960, 0.50832, 0.47642] val_peeled_loss_l=[1.20974, 0.65485, 0.56965, 0.50851, 0.47450]
+[RHM] step=17 train_Mpos_l=[0.39440, 0.60381, 0.69793, 0.75588, 0.79253] val_Mpos_l=[0.39486, 0.60406, 0.69756, 0.75665, 0.79402] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=17 epoch=0.0083 running=2.072844 train_loss=2.063327 val_loss=2.063457 val_acc=0.169367 log_specnorm=55.079990
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_18.pt
+[RHM] step=18 train_peeled_loss_l=[1.22251, 0.65363, 0.56692, 0.50646, 0.47445] val_peeled_loss_l=[1.22245, 0.65376, 0.56688, 0.50677, 0.47258]
+[RHM] step=18 train_Mpos_l=[0.36172, 0.63239, 0.73100, 0.76886, 0.79844] val_Mpos_l=[0.36198, 0.63255, 0.73101, 0.76874, 0.80163] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=18 epoch=0.0088 running=2.064319 train_loss=2.069362 val_loss=2.069426 val_acc=0.169367 log_specnorm=55.265081
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_19.pt
+[RHM] step=19 train_peeled_loss_l=[1.19661, 0.65948, 0.57125, 0.51020, 0.47877] val_peeled_loss_l=[1.19655, 0.65982, 0.57132, 0.51025, 0.47656]
+[RHM] step=19 train_Mpos_l=[0.28184, 0.63062, 0.75778, 0.78257, 0.81143] val_Mpos_l=[0.28185, 0.63076, 0.75811, 0.78367, 0.81285] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=19 epoch=0.0093 running=2.070831 train_loss=2.058396 val_loss=2.058496 val_acc=0.169367 log_specnorm=55.434544
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_20.pt
+[RHM] step=20 train_peeled_loss_l=[1.19482, 0.66330, 0.57358, 0.51265, 0.48143] val_peeled_loss_l=[1.19480, 0.66377, 0.57367, 0.51257, 0.47897]
+[RHM] step=20 train_Mpos_l=[0.27139, 0.58944, 0.71192, 0.76181, 0.78989] val_Mpos_l=[0.27126, 0.58967, 0.71171, 0.76160, 0.79277] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=20 epoch=0.0098 running=2.061180 train_loss=2.066004 val_loss=2.066046 val_acc=0.169367 log_specnorm=55.589737
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_21.pt
+[RHM] step=21 train_peeled_loss_l=[1.21163, 0.65245, 0.56380, 0.50492, 0.47384] val_peeled_loss_l=[1.21169, 0.65278, 0.56375, 0.50505, 0.47153]
+[RHM] step=21 train_Mpos_l=[0.27139, 0.59517, 0.72313, 0.77151, 0.79960] val_Mpos_l=[0.27126, 0.59549, 0.72297, 0.77201, 0.80229] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=21 epoch=0.0103 running=2.070022 train_loss=2.061299 val_loss=2.061208 val_acc=0.169482 log_specnorm=55.727735
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_22.pt
+[RHM] step=22 train_peeled_loss_l=[1.20980, 0.65082, 0.56479, 0.50578, 0.47470] val_peeled_loss_l=[1.20984, 0.65106, 0.56473, 0.50599, 0.47261]
+[RHM] step=22 train_Mpos_l=[0.27139, 0.61080, 0.74186, 0.78125, 0.80985] val_Mpos_l=[0.27126, 0.61114, 0.74213, 0.78182, 0.81176] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=22 epoch=0.0107 running=2.062321 train_loss=2.059470 val_loss=2.059409 val_acc=0.204207 log_specnorm=55.854211
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_23.pt
+[RHM] step=23 train_peeled_loss_l=[1.18703, 0.66056, 0.57544, 0.51383, 0.48256] val_peeled_loss_l=[1.18695, 0.66088, 0.57551, 0.51393, 0.48059]
+[RHM] step=23 train_Mpos_l=[0.29726, 0.59101, 0.72354, 0.76923, 0.79834] val_Mpos_l=[0.29734, 0.59112, 0.72337, 0.76969, 0.79895] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=23 epoch=0.0112 running=2.057787 train_loss=2.058194 val_loss=2.058323 val_acc=0.163661 log_specnorm=55.970732
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_24.pt
+[RHM] step=24 train_peeled_loss_l=[1.19205, 0.66170, 0.57342, 0.51055, 0.47869] val_peeled_loss_l=[1.19189, 0.66200, 0.57351, 0.51075, 0.47677]
+[RHM] step=24 train_Mpos_l=[0.39440, 0.59886, 0.70109, 0.76370, 0.79638] val_Mpos_l=[0.39486, 0.59886, 0.70065, 0.76353, 0.79720] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=24 epoch=0.0117 running=2.059983 train_loss=2.057584 val_loss=2.057783 val_acc=0.206072 log_specnorm=56.077466
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_25.pt
+[RHM] step=25 train_peeled_loss_l=[1.20072, 0.65820, 0.57023, 0.50739, 0.47540] val_peeled_loss_l=[1.20056, 0.65846, 0.57030, 0.50764, 0.47349]
+[RHM] step=25 train_Mpos_l=[0.39440, 0.59060, 0.70425, 0.76920, 0.80137] val_Mpos_l=[0.39486, 0.59091, 0.70418, 0.76920, 0.80292] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=25 epoch=0.0122 running=2.054886 train_loss=2.057139 val_loss=2.057301 val_acc=0.170963 log_specnorm=56.177154
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_26.pt
+[RHM] step=26 train_peeled_loss_l=[1.18980, 0.65501, 0.57237, 0.50998, 0.47839] val_peeled_loss_l=[1.18971, 0.65536, 0.57245, 0.51005, 0.47624]
+[RHM] step=26 train_Mpos_l=[0.31826, 0.63026, 0.72097, 0.76634, 0.79889] val_Mpos_l=[0.31818, 0.63057, 0.72103, 0.76704, 0.80113] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=26 epoch=0.0127 running=2.056884 train_loss=2.050994 val_loss=2.051105 val_acc=0.169367 log_specnorm=56.274779
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_27.pt
+[RHM] step=27 train_peeled_loss_l=[1.19321, 0.64961, 0.56894, 0.50863, 0.47710] val_peeled_loss_l=[1.19323, 0.64994, 0.56895, 0.50868, 0.47478]
+[RHM] step=27 train_Mpos_l=[0.27139, 0.63894, 0.75844, 0.78116, 0.80789] val_Mpos_l=[0.27126, 0.63932, 0.75873, 0.78224, 0.80969] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=27 epoch=0.0132 running=2.050381 train_loss=2.050926 val_loss=2.050919 val_acc=0.169367 log_specnorm=56.384726
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_28.pt
+[RHM] step=28 train_peeled_loss_l=[1.19600, 0.64597, 0.56383, 0.50452, 0.47280] val_peeled_loss_l=[1.19606, 0.64628, 0.56376, 0.50470, 0.47040]
+[RHM] step=28 train_Mpos_l=[0.27139, 0.63968, 0.75001, 0.78053, 0.80799] val_Mpos_l=[0.27126, 0.64005, 0.75030, 0.78046, 0.81022] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=28 epoch=0.0137 running=2.050544 train_loss=2.046971 val_loss=2.046868 val_acc=0.175053 log_specnorm=56.511744
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_29.pt
+[RHM] step=29 train_peeled_loss_l=[1.16863, 0.66033, 0.57344, 0.51270, 0.48045] val_peeled_loss_l=[1.16861, 0.66073, 0.57344, 0.51283, 0.47804]
+[RHM] step=29 train_Mpos_l=[0.35341, 0.60347, 0.71909, 0.76328, 0.79023] val_Mpos_l=[0.35387, 0.60351, 0.71858, 0.76234, 0.79243] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=29 epoch=0.0142 running=2.044983 train_loss=2.047053 val_loss=2.047090 val_acc=0.201716 log_specnorm=56.640652
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_30.pt
+[RHM] step=30 train_peeled_loss_l=[1.19486, 0.64700, 0.55888, 0.49969, 0.46778] val_peeled_loss_l=[1.19489, 0.64712, 0.55871, 0.50014, 0.46572]
+[RHM] step=30 train_Mpos_l=[0.30499, 0.59579, 0.72597, 0.77287, 0.80170] val_Mpos_l=[0.30509, 0.59604, 0.72612, 0.77214, 0.80472] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=30 epoch=0.0146 running=2.049930 train_loss=2.043840 val_loss=2.043770 val_acc=0.192410 log_specnorm=56.760867
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_33.pt
+[RHM] step=33 train_peeled_loss_l=[1.12822, 0.65839, 0.58082, 0.51656, 0.48259] val_peeled_loss_l=[1.12810, 0.65869, 0.58079, 0.51665, 0.48015]
+[RHM] step=33 train_Mpos_l=[0.39440, 0.62141, 0.72988, 0.77558, 0.80986] val_Mpos_l=[0.39486, 0.62135, 0.73002, 0.77567, 0.81018] train_valid_l=[0.66942, 0.39568, 0.18593, 0.06728, 0.02249] val_valid_l=[0.66942, 0.39534, 0.18606, 0.06747, 0.02276]
+[VALID] step=33 epoch=0.0161 running=2.022115 train_loss=2.024774 val_loss=2.025076 val_acc=0.186343 log_specnorm=57.105324
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_37.pt

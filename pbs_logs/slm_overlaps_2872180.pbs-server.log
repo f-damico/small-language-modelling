@@ -1,0 +1,59 @@
+[START] 2026-06-11 15:26:58
+[INFO] hostname=dhler2u01-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py
+[INFO] data_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data
+[INFO] collected_results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results
+[INFO] run_name=slm_uniform_L3_v1
+[INFO] run_prefix=unset
+[INFO] output_name=overlap_weights_L3_v1
+[INFO] overlap_target=weights
+[INFO] metric=gram
+[INFO] representation_mode=block_update
+[INFO] subset_train_size=512
+[INFO] subset_valid_size=512
+[INFO] subset_seed=12345
+[INFO] batch_size=256
+[INFO] num_checkpoints=0
+[INFO] max_step=none
+[INFO] include_embedding=1
+[INFO] include_final_norm=1
+[INFO] temp_root=output_directory
+[INFO] keep_temp=0
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] python=/home/2a/mb12724/miniconda3/envs/rhm/bin/python
+[INFO] python_version=Python 3.10.20
+[INFO] original_cuda_visible_devices=GPU-66530730-9906-4b2a-9825-de10bd026a73
+[INFO] cuda_visible_devices=0
+[INFO] torch_version= 2.3.1+cu118
+[INFO] cuda_runtime= 11.8
+[INFO] cuda_available= True
+[INFO] cuda_device_count= 1
+[INFO] cuda_device_0= Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py --repo_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling --source_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --collected_results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results --device cuda --overlap_target weights --metric gram --representation_mode block_update --subset_train_size 512 --subset_valid_size 512 --subset_seed 12345 --batch_size 256 --num_checkpoints 0 --run_name slm_uniform_L3_v1 --output_name overlap_weights_L3_v1 --include_embedding --include_final_norm
+[RUN] launching overlap computation
+usage: compute_slm_representation_overlaps.py [-h] [--repo_dir REPO_DIR]
+                                              [--source_dir SOURCE_DIR]
+                                              [--results_root RESULTS_ROOT]
+                                              [--run_prefix RUN_PREFIX]
+                                              [--run_name RUN_NAME]
+                                              [--output_name OUTPUT_NAME]
+                                              [--device DEVICE]
+                                              [--overlap_target {representations,weights}]
+                                              [--metric {gram,feature}]
+                                              [--representation_mode {state,block_update}]
+                                              [--subset_train_size SUBSET_TRAIN_SIZE]
+                                              [--subset_valid_size SUBSET_VALID_SIZE]
+                                              [--subset_seed SUBSET_SEED]
+                                              [--batch_size BATCH_SIZE]
+                                              [--num_checkpoints NUM_CHECKPOINTS]
+                                              [--max_step MAX_STEP]
+                                              [--temp_root TEMP_ROOT]
+                                              [--keep_temp]
+                                              [--include_embedding]
+                                              [--no_include_embedding]
+                                              [--include_final_norm]
+                                              [--no_include_final_norm]
+compute_slm_representation_overlaps.py: error: unrecognized arguments: --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --collected_results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results

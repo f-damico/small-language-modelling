@@ -1,0 +1,122 @@
+[START] 2026-06-12 10:21:34
+[INFO] host=dhler2u03-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L3_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] dataset=rhm online=true model=mamba
+[INFO] train_size=65536 val_size=32768 max_steps=100000
+[INFO] batch_size=256 eval_batch_size=1024
+[INFO] RHM: v=8 n=8 m=3 s=3 L=3
+[INFO] Mamba architecture: depth=6 d_embedding=256 d_state=16 d_conv=4 expand=2
+[INFO] num_validations=100 num_weight_saves=100
+[INFO] compute_rhm_diagnostics=true
+[INFO] python=/home/2a/mb12724/miniconda3/envs/slm/bin/python
+Python 3.10.20
+Fri Jun 12 10:21:34 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.57.02    Driver Version: 470.57.02    CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla V100-SXM2...  On   | 00000000:3B:00.0 Off |                    0 |
+| N/A   32C    P0    40W / 300W |     15MiB / 32510MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|    0   N/A  N/A      2351      G   /usr/libexec/Xorg                  14MiB |
++-----------------------------------------------------------------------------+
+torch = 2.3.1+cu118
+cuda runtime = 11.8
+cuda available = True
+gpu = Tesla V100-SXM2-32GB
+Mamba backend = pure-PyTorch fallback
+WARNING: mamba-ssm is not installed; training can be substantially slower.
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py --device cuda --dataset rhm --path /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/datasets --model mamba --train_size 65536 --val_size 32768 --batch_size 256 --eval_batch_size 1024 --eval_train_size 16384 --eval_val_size 16384 --max_steps 100000 --lr 0.001 --scheduler cosine --warmup_time 100 --decay_time 100000 --decay_factor 0.1 --dropout 0.0 --l2 0.0 --print_freq 100 --num_validations 100 --num_weight_saves 100 --save_freq 1000 --depth 6 --d_embedding 256 --d_state 16 --d_conv 4 --mamba_expand 2 --n_heads 8 --ffwd_size 4 --seed_model 1 --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --run_name slm_MAMBA_uniform_L3_v1 --output_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L3_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1 --online --measure_train --save_run_data --num_features 8 --num_classes 8 --num_synonyms 3 --tuple_size 3 --num_layers 3 --seed_rules 1 --seed_sample 1 --input_format long --compute_rhm_diagnostics --rhm_margins_max_train_samples 16384 --rhm_margins_max_val_samples 16384 --rhm_margins_batch_size 256 
+[transformers] Disabling PyTorch because PyTorch >= 2.4 is required but found 2.3.1+cu118
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+================================================================================
+dataset=rhm model=mamba online=True
+output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L3_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+RHM v=8 n=8 m=3 s=3 L=3 d=27
+architecture depth=6 d_embedding=256 n_heads=n/a
+log saves: validations=100, weights=100; RHM diagnostics=True
+================================================================================
+RHM: v=8, n=8, m=3, s=3, L=3, d=27, online=True
+Training for 100000 optimizer steps
+# parameters: 2632448
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L3_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] validation steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 37, 41, 46, 52, 59, 66, 74, 83, 93, 105, 118, 132, 148, 167, 187, 210, 236, 266, 298, 335, 376, 423, 475, 534, 599, 673, 756, 850, 955, 1072, 1205, 1353, 1520, 1707, 1918, 2154, 2420, 2719, 3054, 3430, 3854, 4329, 4863, 5462, 6136, 6893, 7743, 8697, 9770, 10975, 12328, 13849, 15557, 17475, 19630, 22051, 24771, 27826, 31257, 35112, 39442, 44306, 49770, 55908, 62803, 70548, 79248, 89022, 100000]
+[INFO] weight checkpoint steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 37, 41, 46, 52, 59, 66, 74, 83, 93, 105, 118, 132, 148, 167, 187, 210, 236, 266, 298, 335, 376, 423, 475, 534, 599, 673, 756, 850, 955, 1072, 1205, 1353, 1520, 1707, 1918, 2154, 2420, 2719, 3054, 3430, 3854, 4329, 4863, 5462, 6136, 6893, 7743, 8697, 9770, 10975, 12328, 13849, 15557, 17475, 19630, 22051, 24771, 27826, 31257, 35112, 39442, 44306, 49770, 55908, 62803, 70548, 79248, 89022, 100000]
+[INFO] RHM diagnostics=True; online=True; dataset=rhm; model=mamba
+Traceback (most recent call last):
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py", line 222, in <module>
+    run(parse_args())
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/main.py", line 207, in run
+    return train.train_model(
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/train.py", line 418, in train_model
+    _validate(
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/train.py", line 279, in _validate
+    val_eval = measures.evaluate_detailed(
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/measures.py", line 102, in evaluate_detailed
+    logits = model(inputs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/models/mamba.py", line 301, in forward
+    x = layer(x)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM/models/mamba.py", line 210, in forward
+    return x + self.dropout(self.mamba(self.norm(x)))
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/mamba_ssm/ops/triton/layer_norm.py", line 971, in forward
+    return rms_norm_fn(
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/mamba_ssm/ops/triton/layer_norm.py", line 935, in rms_norm_fn
+    return LayerNormFn.apply(
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/torch/autograd/function.py", line 598, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/mamba_ssm/ops/triton/layer_norm.py", line 775, in forward
+    y, y1, mean, rstd, residual_out, seeds, dropout_mask, dropout_mask1 = _layer_norm_fwd(
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/mamba_ssm/ops/triton/layer_norm.py", line 369, in _layer_norm_fwd
+    _layer_norm_fwd_1pass_kernel[(M,)](
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/jit.py", line 167, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 143, in run
+    timings = {config: self._bench(*args, config=config, **kwargs) for config in pruned_configs}
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 143, in <dictcomp>
+    timings = {config: self._bench(*args, config=config, **kwargs) for config in pruned_configs}
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 122, in _bench
+    return do_bench(kernel_call, warmup=self.warmup, rep=self.rep, quantiles=(0.5, 0.2, 0.8))
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/testing.py", line 102, in do_bench
+    fn()
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 110, in kernel_call
+    self.fn.run(
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 305, in run
+    return self.fn.run(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 305, in run
+    return self.fn.run(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 305, in run
+    return self.fn.run(*args, **kwargs)
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/runtime/jit.py", line 425, in run
+    kernel.run(grid_0, grid_1, grid_2, kernel.num_warps, kernel.num_ctas,  # number of warps/ctas per instance
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/compiler/compiler.py", line 255, in __getattribute__
+    self._init_handles()
+  File "/home/2a/mb12724/miniconda3/envs/slm/lib/python3.10/site-packages/triton/compiler/compiler.py", line 250, in _init_handles
+    self.module, self.function, self.n_regs, self.n_spills = driver.utils.load_binary(
+RuntimeError: Triton Error [CUDA]: device kernel image is invalid
+[END] status=1 time=2026-06-12 10:21:54

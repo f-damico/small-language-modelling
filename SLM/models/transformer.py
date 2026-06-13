@@ -3,6 +3,71 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+@torch.no_grad()
+def _matrix_spectral_and_21_norm(parameter: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return exact operator norm and ||W^T||_{2,1} in float64.
+
+    Convolution kernels and higher-rank tensors are viewed as matrices with the
+    first dimension as output channels and all remaining dimensions flattened.
+    """
+    matrix = parameter.detach().to(dtype=torch.float64).reshape(parameter.shape[0], -1)
+    spectral = torch.linalg.matrix_norm(matrix, ord=2)
+    # ||W^T||_{2,1}: sum of Euclidean norms of the columns of W.
+    transpose_21 = torch.linalg.vector_norm(matrix, ord=2, dim=0).sum()
+    return spectral, transpose_21
+
+
+@torch.no_grad()
+def _bartlett_log_complexity(named_parameters, *, exclude_qk: bool = False) -> torch.Tensor:
+    """Bartlett-style spectral complexity in the numerically stable log domain.
+
+    N(W) = prod_i ||W_i||_2 * [sum_i (||W_i^T||_{2,1}/||W_i||_2)^(2/3)]^(3/2).
+    Only matrix-like trainable parameters enter.  The no-QK variant removes the
+    Transformer query and key matrices, matching the previous RHM repository.
+    """
+    log_product = None
+    correction = None
+    eps = torch.finfo(torch.float64).tiny
+    for name, parameter in named_parameters:
+        if not parameter.requires_grad or parameter.ndim < 2:
+            continue
+        lname = name.lower()
+        if exclude_qk and (
+            lname.endswith(".query")
+            or lname.endswith(".key")
+            or ".query." in lname
+            or ".key." in lname
+            or "q_proj" in lname
+            or "k_proj" in lname
+        ):
+            continue
+        spectral, transpose_21 = _matrix_spectral_and_21_norm(parameter)
+        spectral = torch.clamp(spectral, min=eps)
+        term = torch.pow(torch.clamp(transpose_21 / spectral, min=eps), 2.0 / 3.0)
+        log_product = torch.log(spectral) if log_product is None else log_product + torch.log(spectral)
+        correction = term if correction is None else correction + term
+
+    if log_product is None or correction is None:
+        # Keep the return device aligned with the model when no matrix exists.
+        first = next((p for _, p in named_parameters), None)
+        device = first.device if first is not None else torch.device("cpu")
+        return torch.tensor(float("-inf"), dtype=torch.float64, device=device)
+    return log_product + 1.5 * torch.log(torch.clamp(correction, min=eps))
+
+
+@torch.no_grad()
+def _l2_log_norm(parameters) -> torch.Tensor:
+    total = None
+    for parameter in parameters:
+        if not parameter.requires_grad:
+            continue
+        value = torch.sum(parameter.detach().to(torch.float64) ** 2)
+        total = value if total is None else total + value
+    if total is None:
+        return torch.tensor(float("-inf"), dtype=torch.float64)
+    return 0.5 * torch.log(torch.clamp(total, min=torch.finfo(torch.float64).tiny))
+
+
 class RotaryEncoding(nn.Module):
     """
     Rotary Positional Encoding.
@@ -366,6 +431,32 @@ class CLM(nn.Module):
         self.lm_head = nn.Linear(self.embedding_dim, vocab_size)
         if share_emb:
             self.lm_head.weight = self.token_embedding_table.weight
+
+
+
+    @torch.no_grad()
+    def compute_model_log_norm(self):
+        return _bartlett_log_complexity(self.named_parameters(), exclude_qk=False)
+
+    @torch.no_grad()
+    def compute_model_norm(self):
+        return torch.exp(self.compute_model_log_norm())
+
+    @torch.no_grad()
+    def compute_model_log_norm_no_qk(self):
+        return _bartlett_log_complexity(self.named_parameters(), exclude_qk=True)
+
+    @torch.no_grad()
+    def compute_model_norm_no_qk(self):
+        return torch.exp(self.compute_model_log_norm_no_qk())
+
+    @torch.no_grad()
+    def compute_l2_log_norm(self):
+        return _l2_log_norm(self.parameters())
+
+    @torch.no_grad()
+    def compute_l2_norm(self):
+        return torch.exp(self.compute_l2_log_norm())
 
 
     def forward(self, idx, targets=None):

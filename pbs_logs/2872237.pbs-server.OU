@@ -1,0 +1,657 @@
+[START] 2026-06-12 18:05:53
+[INFO] host=dhler2u03-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py
+[INFO] data_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data
+[INFO] collected_results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results
+[INFO] run_name=slm_TR2_uniform_L3_v1
+[INFO] run_id=rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] run_dir_override=unset
+[INFO] resolved_run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L3_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] output_name=overlap_total_TR2_L3_v1
+[INFO] overlap_target=representations
+[INFO] metric=gram
+[INFO] representation_mode=state
+[INFO] reference_source=auto
+[INFO] subset_train_size=512
+[INFO] subset_valid_size=512
+[INFO] subset_seed=12345
+[INFO] batch_size=256
+[INFO] num_checkpoints=0
+[INFO] max_step=none
+[INFO] include_embedding=1
+[INFO] include_final_norm=1
+[INFO] temp_root=output_directory
+[INFO] keep_temp=0
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] original_cuda_visible_devices=GPU-d942597d-8638-cbb3-8464-3ebd05afb154
+[INFO] cuda_visible_devices=0
+[INFO] torch= 2.3.1+cu118
+[INFO] cuda_available= True
+[INFO] gpu= Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py --repo_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling --source_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --collected_results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results --device cuda --overlap_target representations --metric gram --representation_mode state --reference_source auto --subset_train_size 512 --subset_valid_size 512 --subset_seed 12345 --batch_size 256 --num_checkpoints 0 --run_name slm_TR2_uniform_L3_v1 --run_id rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1 --output_name overlap_total_TR2_L3_v1 --include_embedding --include_final_norm
+[RUN] launching overlap computation
+[INFO] run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L3_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] checkpoints=100/100
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/overlap_total_TR2_L3_v1
+[INFO] extracting representations 1/100: checkpoint_step_1.pt
+# parameters: 4350216
+[INFO] extracting representations 2/100: checkpoint_step_2.pt
+# parameters: 4350216
+[INFO] extracting representations 3/100: checkpoint_step_3.pt
+# parameters: 4350216
+[INFO] extracting representations 4/100: checkpoint_step_4.pt
+# parameters: 4350216
+[INFO] extracting representations 5/100: checkpoint_step_5.pt
+# parameters: 4350216
+[INFO] extracting representations 6/100: checkpoint_step_6.pt
+# parameters: 4350216
+[INFO] extracting representations 7/100: checkpoint_step_7.pt
+# parameters: 4350216
+[INFO] extracting representations 8/100: checkpoint_step_8.pt
+# parameters: 4350216
+[INFO] extracting representations 9/100: checkpoint_step_9.pt
+# parameters: 4350216
+[INFO] extracting representations 10/100: checkpoint_step_10.pt
+# parameters: 4350216
+[INFO] extracting representations 11/100: checkpoint_step_11.pt
+# parameters: 4350216
+[INFO] extracting representations 12/100: checkpoint_step_12.pt
+# parameters: 4350216
+[INFO] extracting representations 13/100: checkpoint_step_13.pt
+# parameters: 4350216
+[INFO] extracting representations 14/100: checkpoint_step_14.pt
+# parameters: 4350216
+[INFO] extracting representations 15/100: checkpoint_step_15.pt
+# parameters: 4350216
+[INFO] extracting representations 16/100: checkpoint_step_16.pt
+# parameters: 4350216
+[INFO] extracting representations 17/100: checkpoint_step_17.pt
+# parameters: 4350216
+[INFO] extracting representations 18/100: checkpoint_step_18.pt
+# parameters: 4350216
+[INFO] extracting representations 19/100: checkpoint_step_19.pt
+# parameters: 4350216
+[INFO] extracting representations 20/100: checkpoint_step_20.pt
+# parameters: 4350216
+[INFO] extracting representations 21/100: checkpoint_step_21.pt
+# parameters: 4350216
+[INFO] extracting representations 22/100: checkpoint_step_22.pt
+# parameters: 4350216
+[INFO] extracting representations 23/100: checkpoint_step_23.pt
+# parameters: 4350216
+[INFO] extracting representations 24/100: checkpoint_step_24.pt
+# parameters: 4350216
+[INFO] extracting representations 25/100: checkpoint_step_25.pt
+# parameters: 4350216
+[INFO] extracting representations 26/100: checkpoint_step_26.pt
+# parameters: 4350216
+[INFO] extracting representations 27/100: checkpoint_step_27.pt
+# parameters: 4350216
+[INFO] extracting representations 28/100: checkpoint_step_28.pt
+# parameters: 4350216
+[INFO] extracting representations 29/100: checkpoint_step_29.pt
+# parameters: 4350216
+[INFO] extracting representations 30/100: checkpoint_step_30.pt
+# parameters: 4350216
+[INFO] extracting representations 31/100: checkpoint_step_33.pt
+# parameters: 4350216
+[INFO] extracting representations 32/100: checkpoint_step_37.pt
+# parameters: 4350216
+[INFO] extracting representations 33/100: checkpoint_step_41.pt
+# parameters: 4350216
+[INFO] extracting representations 34/100: checkpoint_step_46.pt
+# parameters: 4350216
+[INFO] extracting representations 35/100: checkpoint_step_52.pt
+# parameters: 4350216
+[INFO] extracting representations 36/100: checkpoint_step_59.pt
+# parameters: 4350216
+[INFO] extracting representations 37/100: checkpoint_step_66.pt
+# parameters: 4350216
+[INFO] extracting representations 38/100: checkpoint_step_74.pt
+# parameters: 4350216
+[INFO] extracting representations 39/100: checkpoint_step_83.pt
+# parameters: 4350216
+[INFO] extracting representations 40/100: checkpoint_step_93.pt
+# parameters: 4350216
+[INFO] extracting representations 41/100: checkpoint_step_105.pt
+# parameters: 4350216
+[INFO] extracting representations 42/100: checkpoint_step_118.pt
+# parameters: 4350216
+[INFO] extracting representations 43/100: checkpoint_step_132.pt
+# parameters: 4350216
+[INFO] extracting representations 44/100: checkpoint_step_148.pt
+# parameters: 4350216
+[INFO] extracting representations 45/100: checkpoint_step_167.pt
+# parameters: 4350216
+[INFO] extracting representations 46/100: checkpoint_step_187.pt
+# parameters: 4350216
+[INFO] extracting representations 47/100: checkpoint_step_210.pt
+# parameters: 4350216
+[INFO] extracting representations 48/100: checkpoint_step_236.pt
+# parameters: 4350216
+[INFO] extracting representations 49/100: checkpoint_step_266.pt
+# parameters: 4350216
+[INFO] extracting representations 50/100: checkpoint_step_298.pt
+# parameters: 4350216
+[INFO] extracting representations 51/100: checkpoint_step_335.pt
+# parameters: 4350216
+[INFO] extracting representations 52/100: checkpoint_step_376.pt
+# parameters: 4350216
+[INFO] extracting representations 53/100: checkpoint_step_423.pt
+# parameters: 4350216
+[INFO] extracting representations 54/100: checkpoint_step_475.pt
+# parameters: 4350216
+[INFO] extracting representations 55/100: checkpoint_step_534.pt
+# parameters: 4350216
+[INFO] extracting representations 56/100: checkpoint_step_599.pt
+# parameters: 4350216
+[INFO] extracting representations 57/100: checkpoint_step_673.pt
+# parameters: 4350216
+[INFO] extracting representations 58/100: checkpoint_step_756.pt
+# parameters: 4350216
+[INFO] extracting representations 59/100: checkpoint_step_850.pt
+# parameters: 4350216
+[INFO] extracting representations 60/100: checkpoint_step_955.pt
+# parameters: 4350216
+[INFO] extracting representations 61/100: checkpoint_step_1072.pt
+# parameters: 4350216
+[INFO] extracting representations 62/100: checkpoint_step_1205.pt
+# parameters: 4350216
+[INFO] extracting representations 63/100: checkpoint_step_1353.pt
+# parameters: 4350216
+[INFO] extracting representations 64/100: checkpoint_step_1520.pt
+# parameters: 4350216
+[INFO] extracting representations 65/100: checkpoint_step_1707.pt
+# parameters: 4350216
+[INFO] extracting representations 66/100: checkpoint_step_1918.pt
+# parameters: 4350216
+[INFO] extracting representations 67/100: checkpoint_step_2154.pt
+# parameters: 4350216
+[INFO] extracting representations 68/100: checkpoint_step_2420.pt
+# parameters: 4350216
+[INFO] extracting representations 69/100: checkpoint_step_2719.pt
+# parameters: 4350216
+[INFO] extracting representations 70/100: checkpoint_step_3054.pt
+# parameters: 4350216
+[INFO] extracting representations 71/100: checkpoint_step_3430.pt
+# parameters: 4350216
+[INFO] extracting representations 72/100: checkpoint_step_3854.pt
+# parameters: 4350216
+[INFO] extracting representations 73/100: checkpoint_step_4329.pt
+# parameters: 4350216
+[INFO] extracting representations 74/100: checkpoint_step_4863.pt
+# parameters: 4350216
+[INFO] extracting representations 75/100: checkpoint_step_5462.pt
+# parameters: 4350216
+[INFO] extracting representations 76/100: checkpoint_step_6136.pt
+# parameters: 4350216
+[INFO] extracting representations 77/100: checkpoint_step_6893.pt
+# parameters: 4350216
+[INFO] extracting representations 78/100: checkpoint_step_7743.pt
+# parameters: 4350216
+[INFO] extracting representations 79/100: checkpoint_step_8697.pt
+# parameters: 4350216
+[INFO] extracting representations 80/100: checkpoint_step_9770.pt
+# parameters: 4350216
+[INFO] extracting representations 81/100: checkpoint_step_10975.pt
+# parameters: 4350216
+[INFO] extracting representations 82/100: checkpoint_step_12328.pt
+# parameters: 4350216
+[INFO] extracting representations 83/100: checkpoint_step_13849.pt
+# parameters: 4350216
+[INFO] extracting representations 84/100: checkpoint_step_15557.pt
+# parameters: 4350216
+[INFO] extracting representations 85/100: checkpoint_step_17475.pt
+# parameters: 4350216
+[INFO] extracting representations 86/100: checkpoint_step_19630.pt
+# parameters: 4350216
+[INFO] extracting representations 87/100: checkpoint_step_22051.pt
+# parameters: 4350216
+[INFO] extracting representations 88/100: checkpoint_step_24771.pt
+# parameters: 4350216
+[INFO] extracting representations 89/100: checkpoint_step_27826.pt
+# parameters: 4350216
+[INFO] extracting representations 90/100: checkpoint_step_31257.pt
+# parameters: 4350216
+[INFO] extracting representations 91/100: checkpoint_step_35112.pt
+# parameters: 4350216
+[INFO] extracting representations 92/100: checkpoint_step_39442.pt
+# parameters: 4350216
+[INFO] extracting representations 93/100: checkpoint_step_44306.pt
+# parameters: 4350216
+[INFO] extracting representations 94/100: checkpoint_step_49770.pt
+# parameters: 4350216
+[INFO] extracting representations 95/100: checkpoint_step_55908.pt
+# parameters: 4350216
+[INFO] extracting representations 96/100: checkpoint_step_62803.pt
+# parameters: 4350216
+[INFO] extracting representations 97/100: checkpoint_step_70548.pt
+# parameters: 4350216
+[INFO] extracting representations 98/100: checkpoint_step_79248.pt
+# parameters: 4350216
+[INFO] extracting representations 99/100: checkpoint_step_89022.pt
+# parameters: 4350216
+[INFO] extracting representations 100/100: checkpoint_step_100000.pt
+# parameters: 4350216
+[INFO] CKA split=train position=0 layer=0
+[INFO] CKA split=train position=0 layer=1
+[INFO] CKA split=train position=0 layer=2
+[INFO] CKA split=train position=0 layer=3
+[INFO] CKA split=train position=0 layer=4
+[INFO] CKA split=train position=0 layer=5
+[INFO] CKA split=train position=0 layer=6
+[INFO] CKA split=train position=0 layer=7
+[INFO] CKA split=train position=1 layer=0
+[INFO] CKA split=train position=1 layer=1
+[INFO] CKA split=train position=1 layer=2
+[INFO] CKA split=train position=1 layer=3
+[INFO] CKA split=train position=1 layer=4
+[INFO] CKA split=train position=1 layer=5
+[INFO] CKA split=train position=1 layer=6
+[INFO] CKA split=train position=1 layer=7
+[INFO] CKA split=train position=2 layer=0
+[INFO] CKA split=train position=2 layer=1
+[INFO] CKA split=train position=2 layer=2
+[INFO] CKA split=train position=2 layer=3
+[INFO] CKA split=train position=2 layer=4
+[INFO] CKA split=train position=2 layer=5
+[INFO] CKA split=train position=2 layer=6
+[INFO] CKA split=train position=2 layer=7
+[INFO] CKA split=train position=3 layer=0
+[INFO] CKA split=train position=3 layer=1
+[INFO] CKA split=train position=3 layer=2
+[INFO] CKA split=train position=3 layer=3
+[INFO] CKA split=train position=3 layer=4
+[INFO] CKA split=train position=3 layer=5
+[INFO] CKA split=train position=3 layer=6
+[INFO] CKA split=train position=3 layer=7
+[INFO] CKA split=train position=4 layer=0
+[INFO] CKA split=train position=4 layer=1
+[INFO] CKA split=train position=4 layer=2
+[INFO] CKA split=train position=4 layer=3
+[INFO] CKA split=train position=4 layer=4
+[INFO] CKA split=train position=4 layer=5
+[INFO] CKA split=train position=4 layer=6
+[INFO] CKA split=train position=4 layer=7
+[INFO] CKA split=train position=5 layer=0
+[INFO] CKA split=train position=5 layer=1
+[INFO] CKA split=train position=5 layer=2
+[INFO] CKA split=train position=5 layer=3
+[INFO] CKA split=train position=5 layer=4
+[INFO] CKA split=train position=5 layer=5
+[INFO] CKA split=train position=5 layer=6
+[INFO] CKA split=train position=5 layer=7
+[INFO] CKA split=train position=6 layer=0
+[INFO] CKA split=train position=6 layer=1
+[INFO] CKA split=train position=6 layer=2
+[INFO] CKA split=train position=6 layer=3
+[INFO] CKA split=train position=6 layer=4
+[INFO] CKA split=train position=6 layer=5
+[INFO] CKA split=train position=6 layer=6
+[INFO] CKA split=train position=6 layer=7
+[INFO] CKA split=train position=7 layer=0
+[INFO] CKA split=train position=7 layer=1
+[INFO] CKA split=train position=7 layer=2
+[INFO] CKA split=train position=7 layer=3
+[INFO] CKA split=train position=7 layer=4
+[INFO] CKA split=train position=7 layer=5
+[INFO] CKA split=train position=7 layer=6
+[INFO] CKA split=train position=7 layer=7
+[INFO] CKA split=train position=8 layer=0
+[INFO] CKA split=train position=8 layer=1
+[INFO] CKA split=train position=8 layer=2
+[INFO] CKA split=train position=8 layer=3
+[INFO] CKA split=train position=8 layer=4
+[INFO] CKA split=train position=8 layer=5
+[INFO] CKA split=train position=8 layer=6
+[INFO] CKA split=train position=8 layer=7
+[INFO] CKA split=train position=9 layer=0
+[INFO] CKA split=train position=9 layer=1
+[INFO] CKA split=train position=9 layer=2
+[INFO] CKA split=train position=9 layer=3
+[INFO] CKA split=train position=9 layer=4
+[INFO] CKA split=train position=9 layer=5
+[INFO] CKA split=train position=9 layer=6
+[INFO] CKA split=train position=9 layer=7
+[INFO] CKA split=train position=10 layer=0
+[INFO] CKA split=train position=10 layer=1
+[INFO] CKA split=train position=10 layer=2
+[INFO] CKA split=train position=10 layer=3
+[INFO] CKA split=train position=10 layer=4
+[INFO] CKA split=train position=10 layer=5
+[INFO] CKA split=train position=10 layer=6
+[INFO] CKA split=train position=10 layer=7
+[INFO] CKA split=train position=11 layer=0
+[INFO] CKA split=train position=11 layer=1
+[INFO] CKA split=train position=11 layer=2
+[INFO] CKA split=train position=11 layer=3
+[INFO] CKA split=train position=11 layer=4
+[INFO] CKA split=train position=11 layer=5
+[INFO] CKA split=train position=11 layer=6
+[INFO] CKA split=train position=11 layer=7
+[INFO] CKA split=train position=12 layer=0
+[INFO] CKA split=train position=12 layer=1
+[INFO] CKA split=train position=12 layer=2
+[INFO] CKA split=train position=12 layer=3
+[INFO] CKA split=train position=12 layer=4
+[INFO] CKA split=train position=12 layer=5
+[INFO] CKA split=train position=12 layer=6
+[INFO] CKA split=train position=12 layer=7
+[INFO] CKA split=train position=13 layer=0
+[INFO] CKA split=train position=13 layer=1
+[INFO] CKA split=train position=13 layer=2
+[INFO] CKA split=train position=13 layer=3
+[INFO] CKA split=train position=13 layer=4
+[INFO] CKA split=train position=13 layer=5
+[INFO] CKA split=train position=13 layer=6
+[INFO] CKA split=train position=13 layer=7
+[INFO] CKA split=train position=14 layer=0
+[INFO] CKA split=train position=14 layer=1
+[INFO] CKA split=train position=14 layer=2
+[INFO] CKA split=train position=14 layer=3
+[INFO] CKA split=train position=14 layer=4
+[INFO] CKA split=train position=14 layer=5
+[INFO] CKA split=train position=14 layer=6
+[INFO] CKA split=train position=14 layer=7
+[INFO] CKA split=train position=15 layer=0
+[INFO] CKA split=train position=15 layer=1
+[INFO] CKA split=train position=15 layer=2
+[INFO] CKA split=train position=15 layer=3
+[INFO] CKA split=train position=15 layer=4
+[INFO] CKA split=train position=15 layer=5
+[INFO] CKA split=train position=15 layer=6
+[INFO] CKA split=train position=15 layer=7
+[INFO] CKA split=train position=16 layer=0
+[INFO] CKA split=train position=16 layer=1
+[INFO] CKA split=train position=16 layer=2
+[INFO] CKA split=train position=16 layer=3
+[INFO] CKA split=train position=16 layer=4
+[INFO] CKA split=train position=16 layer=5
+[INFO] CKA split=train position=16 layer=6
+[INFO] CKA split=train position=16 layer=7
+[INFO] CKA split=train position=17 layer=0
+[INFO] CKA split=train position=17 layer=1
+[INFO] CKA split=train position=17 layer=2
+[INFO] CKA split=train position=17 layer=3
+[INFO] CKA split=train position=17 layer=4
+[INFO] CKA split=train position=17 layer=5
+[INFO] CKA split=train position=17 layer=6
+[INFO] CKA split=train position=17 layer=7
+[INFO] CKA split=train position=18 layer=0
+[INFO] CKA split=train position=18 layer=1
+[INFO] CKA split=train position=18 layer=2
+[INFO] CKA split=train position=18 layer=3
+[INFO] CKA split=train position=18 layer=4
+[INFO] CKA split=train position=18 layer=5
+[INFO] CKA split=train position=18 layer=6
+[INFO] CKA split=train position=18 layer=7
+[INFO] CKA split=train position=19 layer=0
+[INFO] CKA split=train position=19 layer=1
+[INFO] CKA split=train position=19 layer=2
+[INFO] CKA split=train position=19 layer=3
+[INFO] CKA split=train position=19 layer=4
+[INFO] CKA split=train position=19 layer=5
+[INFO] CKA split=train position=19 layer=6
+[INFO] CKA split=train position=19 layer=7
+[INFO] CKA split=train position=20 layer=0
+[INFO] CKA split=train position=20 layer=1
+[INFO] CKA split=train position=20 layer=2
+[INFO] CKA split=train position=20 layer=3
+[INFO] CKA split=train position=20 layer=4
+[INFO] CKA split=train position=20 layer=5
+[INFO] CKA split=train position=20 layer=6
+[INFO] CKA split=train position=20 layer=7
+[INFO] CKA split=train position=21 layer=0
+[INFO] CKA split=train position=21 layer=1
+[INFO] CKA split=train position=21 layer=2
+[INFO] CKA split=train position=21 layer=3
+[INFO] CKA split=train position=21 layer=4
+[INFO] CKA split=train position=21 layer=5
+[INFO] CKA split=train position=21 layer=6
+[INFO] CKA split=train position=21 layer=7
+[INFO] CKA split=train position=22 layer=0
+[INFO] CKA split=train position=22 layer=1
+[INFO] CKA split=train position=22 layer=2
+[INFO] CKA split=train position=22 layer=3
+[INFO] CKA split=train position=22 layer=4
+[INFO] CKA split=train position=22 layer=5
+[INFO] CKA split=train position=22 layer=6
+[INFO] CKA split=train position=22 layer=7
+[INFO] CKA split=train position=23 layer=0
+[INFO] CKA split=train position=23 layer=1
+[INFO] CKA split=train position=23 layer=2
+[INFO] CKA split=train position=23 layer=3
+[INFO] CKA split=train position=23 layer=4
+[INFO] CKA split=train position=23 layer=5
+[INFO] CKA split=train position=23 layer=6
+[INFO] CKA split=train position=23 layer=7
+[INFO] CKA split=train position=24 layer=0
+[INFO] CKA split=train position=24 layer=1
+[INFO] CKA split=train position=24 layer=2
+[INFO] CKA split=train position=24 layer=3
+[INFO] CKA split=train position=24 layer=4
+[INFO] CKA split=train position=24 layer=5
+[INFO] CKA split=train position=24 layer=6
+[INFO] CKA split=train position=24 layer=7
+[INFO] CKA split=train position=25 layer=0
+[INFO] CKA split=train position=25 layer=1
+[INFO] CKA split=train position=25 layer=2
+[INFO] CKA split=train position=25 layer=3
+[INFO] CKA split=train position=25 layer=4
+[INFO] CKA split=train position=25 layer=5
+[INFO] CKA split=train position=25 layer=6
+[INFO] CKA split=train position=25 layer=7
+[INFO] CKA split=valid position=0 layer=0
+[INFO] CKA split=valid position=0 layer=1
+[INFO] CKA split=valid position=0 layer=2
+[INFO] CKA split=valid position=0 layer=3
+[INFO] CKA split=valid position=0 layer=4
+[INFO] CKA split=valid position=0 layer=5
+[INFO] CKA split=valid position=0 layer=6
+[INFO] CKA split=valid position=0 layer=7
+[INFO] CKA split=valid position=1 layer=0
+[INFO] CKA split=valid position=1 layer=1
+[INFO] CKA split=valid position=1 layer=2
+[INFO] CKA split=valid position=1 layer=3
+[INFO] CKA split=valid position=1 layer=4
+[INFO] CKA split=valid position=1 layer=5
+[INFO] CKA split=valid position=1 layer=6
+[INFO] CKA split=valid position=1 layer=7
+[INFO] CKA split=valid position=2 layer=0
+[INFO] CKA split=valid position=2 layer=1
+[INFO] CKA split=valid position=2 layer=2
+[INFO] CKA split=valid position=2 layer=3
+[INFO] CKA split=valid position=2 layer=4
+[INFO] CKA split=valid position=2 layer=5
+[INFO] CKA split=valid position=2 layer=6
+[INFO] CKA split=valid position=2 layer=7
+[INFO] CKA split=valid position=3 layer=0
+[INFO] CKA split=valid position=3 layer=1
+[INFO] CKA split=valid position=3 layer=2
+[INFO] CKA split=valid position=3 layer=3
+[INFO] CKA split=valid position=3 layer=4
+[INFO] CKA split=valid position=3 layer=5
+[INFO] CKA split=valid position=3 layer=6
+[INFO] CKA split=valid position=3 layer=7
+[INFO] CKA split=valid position=4 layer=0
+[INFO] CKA split=valid position=4 layer=1
+[INFO] CKA split=valid position=4 layer=2
+[INFO] CKA split=valid position=4 layer=3
+[INFO] CKA split=valid position=4 layer=4
+[INFO] CKA split=valid position=4 layer=5
+[INFO] CKA split=valid position=4 layer=6
+[INFO] CKA split=valid position=4 layer=7
+[INFO] CKA split=valid position=5 layer=0
+[INFO] CKA split=valid position=5 layer=1
+[INFO] CKA split=valid position=5 layer=2
+[INFO] CKA split=valid position=5 layer=3
+[INFO] CKA split=valid position=5 layer=4
+[INFO] CKA split=valid position=5 layer=5
+[INFO] CKA split=valid position=5 layer=6
+[INFO] CKA split=valid position=5 layer=7
+[INFO] CKA split=valid position=6 layer=0
+[INFO] CKA split=valid position=6 layer=1
+[INFO] CKA split=valid position=6 layer=2
+[INFO] CKA split=valid position=6 layer=3
+[INFO] CKA split=valid position=6 layer=4
+[INFO] CKA split=valid position=6 layer=5
+[INFO] CKA split=valid position=6 layer=6
+[INFO] CKA split=valid position=6 layer=7
+[INFO] CKA split=valid position=7 layer=0
+[INFO] CKA split=valid position=7 layer=1
+[INFO] CKA split=valid position=7 layer=2
+[INFO] CKA split=valid position=7 layer=3
+[INFO] CKA split=valid position=7 layer=4
+[INFO] CKA split=valid position=7 layer=5
+[INFO] CKA split=valid position=7 layer=6
+[INFO] CKA split=valid position=7 layer=7
+[INFO] CKA split=valid position=8 layer=0
+[INFO] CKA split=valid position=8 layer=1
+[INFO] CKA split=valid position=8 layer=2
+[INFO] CKA split=valid position=8 layer=3
+[INFO] CKA split=valid position=8 layer=4
+[INFO] CKA split=valid position=8 layer=5
+[INFO] CKA split=valid position=8 layer=6
+[INFO] CKA split=valid position=8 layer=7
+[INFO] CKA split=valid position=9 layer=0
+[INFO] CKA split=valid position=9 layer=1
+[INFO] CKA split=valid position=9 layer=2
+[INFO] CKA split=valid position=9 layer=3
+[INFO] CKA split=valid position=9 layer=4
+[INFO] CKA split=valid position=9 layer=5
+[INFO] CKA split=valid position=9 layer=6
+[INFO] CKA split=valid position=9 layer=7
+[INFO] CKA split=valid position=10 layer=0
+[INFO] CKA split=valid position=10 layer=1
+[INFO] CKA split=valid position=10 layer=2
+[INFO] CKA split=valid position=10 layer=3
+[INFO] CKA split=valid position=10 layer=4
+[INFO] CKA split=valid position=10 layer=5
+[INFO] CKA split=valid position=10 layer=6
+[INFO] CKA split=valid position=10 layer=7
+[INFO] CKA split=valid position=11 layer=0
+[INFO] CKA split=valid position=11 layer=1
+[INFO] CKA split=valid position=11 layer=2
+[INFO] CKA split=valid position=11 layer=3
+[INFO] CKA split=valid position=11 layer=4
+[INFO] CKA split=valid position=11 layer=5
+[INFO] CKA split=valid position=11 layer=6
+[INFO] CKA split=valid position=11 layer=7
+[INFO] CKA split=valid position=12 layer=0
+[INFO] CKA split=valid position=12 layer=1
+[INFO] CKA split=valid position=12 layer=2
+[INFO] CKA split=valid position=12 layer=3
+[INFO] CKA split=valid position=12 layer=4
+[INFO] CKA split=valid position=12 layer=5
+[INFO] CKA split=valid position=12 layer=6
+[INFO] CKA split=valid position=12 layer=7
+[INFO] CKA split=valid position=13 layer=0
+[INFO] CKA split=valid position=13 layer=1
+[INFO] CKA split=valid position=13 layer=2
+[INFO] CKA split=valid position=13 layer=3
+[INFO] CKA split=valid position=13 layer=4
+[INFO] CKA split=valid position=13 layer=5
+[INFO] CKA split=valid position=13 layer=6
+[INFO] CKA split=valid position=13 layer=7
+[INFO] CKA split=valid position=14 layer=0
+[INFO] CKA split=valid position=14 layer=1
+[INFO] CKA split=valid position=14 layer=2
+[INFO] CKA split=valid position=14 layer=3
+[INFO] CKA split=valid position=14 layer=4
+[INFO] CKA split=valid position=14 layer=5
+[INFO] CKA split=valid position=14 layer=6
+[INFO] CKA split=valid position=14 layer=7
+[INFO] CKA split=valid position=15 layer=0
+[INFO] CKA split=valid position=15 layer=1
+[INFO] CKA split=valid position=15 layer=2
+[INFO] CKA split=valid position=15 layer=3
+[INFO] CKA split=valid position=15 layer=4
+[INFO] CKA split=valid position=15 layer=5
+[INFO] CKA split=valid position=15 layer=6
+[INFO] CKA split=valid position=15 layer=7
+[INFO] CKA split=valid position=16 layer=0
+[INFO] CKA split=valid position=16 layer=1
+[INFO] CKA split=valid position=16 layer=2
+[INFO] CKA split=valid position=16 layer=3
+[INFO] CKA split=valid position=16 layer=4
+[INFO] CKA split=valid position=16 layer=5
+[INFO] CKA split=valid position=16 layer=6
+[INFO] CKA split=valid position=16 layer=7
+[INFO] CKA split=valid position=17 layer=0
+[INFO] CKA split=valid position=17 layer=1
+[INFO] CKA split=valid position=17 layer=2
+[INFO] CKA split=valid position=17 layer=3
+[INFO] CKA split=valid position=17 layer=4
+[INFO] CKA split=valid position=17 layer=5
+[INFO] CKA split=valid position=17 layer=6
+[INFO] CKA split=valid position=17 layer=7
+[INFO] CKA split=valid position=18 layer=0
+[INFO] CKA split=valid position=18 layer=1
+[INFO] CKA split=valid position=18 layer=2
+[INFO] CKA split=valid position=18 layer=3
+[INFO] CKA split=valid position=18 layer=4
+[INFO] CKA split=valid position=18 layer=5
+[INFO] CKA split=valid position=18 layer=6
+[INFO] CKA split=valid position=18 layer=7
+[INFO] CKA split=valid position=19 layer=0
+[INFO] CKA split=valid position=19 layer=1
+[INFO] CKA split=valid position=19 layer=2
+[INFO] CKA split=valid position=19 layer=3
+[INFO] CKA split=valid position=19 layer=4
+[INFO] CKA split=valid position=19 layer=5
+[INFO] CKA split=valid position=19 layer=6
+[INFO] CKA split=valid position=19 layer=7
+[INFO] CKA split=valid position=20 layer=0
+[INFO] CKA split=valid position=20 layer=1
+[INFO] CKA split=valid position=20 layer=2
+[INFO] CKA split=valid position=20 layer=3
+[INFO] CKA split=valid position=20 layer=4
+[INFO] CKA split=valid position=20 layer=5
+[INFO] CKA split=valid position=20 layer=6
+[INFO] CKA split=valid position=20 layer=7
+[INFO] CKA split=valid position=21 layer=0
+[INFO] CKA split=valid position=21 layer=1
+[INFO] CKA split=valid position=21 layer=2
+[INFO] CKA split=valid position=21 layer=3
+[INFO] CKA split=valid position=21 layer=4
+[INFO] CKA split=valid position=21 layer=5
+[INFO] CKA split=valid position=21 layer=6
+[INFO] CKA split=valid position=21 layer=7
+[INFO] CKA split=valid position=22 layer=0
+[INFO] CKA split=valid position=22 layer=1
+[INFO] CKA split=valid position=22 layer=2
+[INFO] CKA split=valid position=22 layer=3
+[INFO] CKA split=valid position=22 layer=4
+[INFO] CKA split=valid position=22 layer=5
+[INFO] CKA split=valid position=22 layer=6
+[INFO] CKA split=valid position=22 layer=7
+[INFO] CKA split=valid position=23 layer=0
+[INFO] CKA split=valid position=23 layer=1
+[INFO] CKA split=valid position=23 layer=2
+[INFO] CKA split=valid position=23 layer=3
+[INFO] CKA split=valid position=23 layer=4
+[INFO] CKA split=valid position=23 layer=5
+[INFO] CKA split=valid position=23 layer=6
+[INFO] CKA split=valid position=23 layer=7
+[INFO] CKA split=valid position=24 layer=0
+[INFO] CKA split=valid position=24 layer=1
+[INFO] CKA split=valid position=24 layer=2
+[INFO] CKA split=valid position=24 layer=3
+[INFO] CKA split=valid position=24 layer=4
+[INFO] CKA split=valid position=24 layer=5
+[INFO] CKA split=valid position=24 layer=6
+[INFO] CKA split=valid position=24 layer=7
+[INFO] CKA split=valid position=25 layer=0
+[INFO] CKA split=valid position=25 layer=1
+[INFO] CKA split=valid position=25 layer=2
+[INFO] CKA split=valid position=25 layer=3
+[INFO] CKA split=valid position=25 layer=4
+[INFO] CKA split=valid position=25 layer=5
+[INFO] CKA split=valid position=25 layer=6
+[INFO] CKA split=valid position=25 layer=7
+[INFO] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/overlap_total_TR2_L3_v1/representation_overlaps_per_position.npz
+[INFO] total representation time=22527.75s
+[END] 2026-06-13 00:21:44 return_code=0

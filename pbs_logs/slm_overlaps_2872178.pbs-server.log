@@ -1,0 +1,43 @@
+[START] 2026-06-11 15:12:32
+[INFO] hostname=dhler2u01-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py
+[INFO] results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/results
+[INFO] run_name=my_run
+[INFO] run_prefix=/mnt/beegfs/2a/mb12724/franc/small-language-modeling/
+[INFO] output_name=auto
+[INFO] overlap_target=weights
+[INFO] metric=gram
+[INFO] representation_mode=block_update
+[INFO] subset_train_size=512
+[INFO] subset_valid_size=512
+[INFO] subset_seed=12345
+[INFO] num_checkpoints=0
+[INFO] max_step=none
+[INFO] batch_size=256
+[INFO] include_embedding=1
+[INFO] include_final_norm=1
+[INFO] temp_root=output_directory
+[INFO] keep_temp=0
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] python=/home/2a/mb12724/miniconda3/envs/rhm/bin/python
+[INFO] python_version=Python 3.10.20
+[INFO] original_cuda_visible_devices=GPU-66530730-9906-4b2a-9825-de10bd026a73
+[INFO] cuda_visible_devices=0
+[INFO] torch_version= 2.3.1+cu118
+[INFO] cuda_runtime= 11.8
+[INFO] cuda_available= True
+[INFO] cuda_device_count= 1
+[INFO] cuda_device_0= Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py --repo_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling --source_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM --results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/results --device cuda --overlap_target weights --metric gram --representation_mode block_update --subset_train_size 512 --subset_valid_size 512 --subset_seed 12345 --batch_size 256 --num_checkpoints 0 --run_prefix /mnt/beegfs/2a/mb12724/franc/small-language-modeling/ --include_embedding --include_final_norm
+[RUN] launching overlap computation
+Traceback (most recent call last):
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py", line 1697, in <module>
+    main()
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py", line 1533, in main
+    config, _ = _load_training_config(run_prefix, cli.device)
+  File "/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py", line 256, in _load_training_config
+    raise FileNotFoundError(
+FileNotFoundError: Missing run metadata file: /mnt/beegfs/2a/mb12724/franc/small-language-modeling.pt. The training code saves the config there.

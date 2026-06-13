@@ -1,0 +1,34 @@
+[START] 2026-06-12 17:06:43
+[INFO] host=dhler2u01-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py
+[INFO] data_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data
+[INFO] collected_results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results
+[INFO] run_name=slm_TR2_uniform_L3_v1
+[INFO] run_id=rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] run_dir_override=unset
+[INFO] resolved_run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L3_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] output_name=overlap_weights_TR2_L3_v1
+[INFO] overlap_target=weights
+[INFO] metric=gram
+[INFO] representation_mode=state
+[INFO] reference_source=auto
+[INFO] subset_train_size=512
+[INFO] subset_valid_size=512
+[INFO] subset_seed=12345
+[INFO] batch_size=256
+[INFO] num_checkpoints=0
+[INFO] max_step=none
+[INFO] include_embedding=1
+[INFO] include_final_norm=1
+[INFO] temp_root=output_directory
+[INFO] keep_temp=0
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] original_cuda_visible_devices=GPU-66530730-9906-4b2a-9825-de10bd026a73
+[INFO] cuda_visible_devices=0
+[INFO] torch= 2.3.1+cu118
+[INFO] cuda_available= True
+[INFO] gpu= Tesla V100-SXM2-32GB
+[ERROR] Missing run directory: /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L3_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1

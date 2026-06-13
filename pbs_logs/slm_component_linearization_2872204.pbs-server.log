@@ -1,0 +1,146 @@
+[START] 2026-06-12 09:16:14
+[INFO] diagnostic_version=layerwise_attention_mlp_first_baseline_v1
+[INFO] host=dhler2u01-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_component_linearization_error.py
+[INFO] data_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data
+[INFO] collected_results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results
+[INFO] resolved_run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L4_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] output_name=linearization_L4_v1
+[INFO] num_checkpoints=5
+[INFO] baseline=earliest selected checkpoint
+[INFO] components=attention,mlp layer-by-layer
+[INFO] max_step=none
+[INFO] split=test
+[INFO] subset_size=512
+[INFO] subset_seed=12345
+[INFO] batch_size=32
+[INFO] reference_source=auto
+[INFO] jvp_method=auto
+[INFO] finite_difference_epsilon=0.001
+[INFO] center_logits=1
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] original_cuda_visible_devices=GPU-fe585e8c-910e-cb6f-46cd-956c26e92992
+[INFO] cuda_visible_devices=0
+[INFO] torch= 2.3.1+cu118
+[INFO] cuda_available= True
+[INFO] gpu= Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_component_linearization_error.py --repo_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling --source_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --collected_results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results --device cuda --num_checkpoints 5 --split test --subset_size 512 --subset_seed 12345 --batch_size 32 --reference_source auto --jvp_method auto --finite_difference_epsilon 0.001 --run_name slm_uniform_L4_v1 --run_id rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1 --output_name linearization_L4_v1 --center_logits
+[RUN] launching updated layer-wise attention/MLP linearization diagnostic
+[INFO] diagnostic_version=layerwise_attention_mlp_first_baseline_v1
+[INFO] run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L4_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/linearization_L4_v1
+[INFO] available checkpoints=100
+[INFO] selected checkpoint indices=[0, 17, 50, 74, 99]
+[INFO] selected steps=[1, 18, 335, 5462, 100000]
+[INFO] common baseline selected_index=0 step=1
+# parameters: 6334984
+[INFO] layer_names=['layer_1', 'layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6', 'layer_7', 'layer_8']
+[INFO] group component=attention layer=layer_1 parameters=['blocks.0.attn.key', 'blocks.0.attn.projection', 'blocks.0.attn.query', 'blocks.0.attn.value']
+[INFO] group component=attention layer=layer_2 parameters=['blocks.1.attn.key', 'blocks.1.attn.projection', 'blocks.1.attn.query', 'blocks.1.attn.value']
+[INFO] group component=attention layer=layer_3 parameters=['blocks.2.attn.key', 'blocks.2.attn.projection', 'blocks.2.attn.query', 'blocks.2.attn.value']
+[INFO] group component=attention layer=layer_4 parameters=['blocks.3.attn.key', 'blocks.3.attn.projection', 'blocks.3.attn.query', 'blocks.3.attn.value']
+[INFO] group component=attention layer=layer_5 parameters=['blocks.4.attn.key', 'blocks.4.attn.projection', 'blocks.4.attn.query', 'blocks.4.attn.value']
+[INFO] group component=attention layer=layer_6 parameters=['blocks.5.attn.key', 'blocks.5.attn.projection', 'blocks.5.attn.query', 'blocks.5.attn.value']
+[INFO] group component=attention layer=layer_7 parameters=['blocks.6.attn.key', 'blocks.6.attn.projection', 'blocks.6.attn.query', 'blocks.6.attn.value']
+[INFO] group component=attention layer=layer_8 parameters=['blocks.7.attn.key', 'blocks.7.attn.projection', 'blocks.7.attn.query', 'blocks.7.attn.value']
+[INFO] group component=mlp layer=layer_1 parameters=['blocks.0.ffwd.net.0.bias', 'blocks.0.ffwd.net.0.weight', 'blocks.0.ffwd.net.3.bias', 'blocks.0.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_2 parameters=['blocks.1.ffwd.net.0.bias', 'blocks.1.ffwd.net.0.weight', 'blocks.1.ffwd.net.3.bias', 'blocks.1.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_3 parameters=['blocks.2.ffwd.net.0.bias', 'blocks.2.ffwd.net.0.weight', 'blocks.2.ffwd.net.3.bias', 'blocks.2.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_4 parameters=['blocks.3.ffwd.net.0.bias', 'blocks.3.ffwd.net.0.weight', 'blocks.3.ffwd.net.3.bias', 'blocks.3.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_5 parameters=['blocks.4.ffwd.net.0.bias', 'blocks.4.ffwd.net.0.weight', 'blocks.4.ffwd.net.3.bias', 'blocks.4.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_6 parameters=['blocks.5.ffwd.net.0.bias', 'blocks.5.ffwd.net.0.weight', 'blocks.5.ffwd.net.3.bias', 'blocks.5.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_7 parameters=['blocks.6.ffwd.net.0.bias', 'blocks.6.ffwd.net.0.weight', 'blocks.6.ffwd.net.3.bias', 'blocks.6.ffwd.net.3.weight']
+[INFO] group component=mlp layer=layer_8 parameters=['blocks.7.ffwd.net.0.bias', 'blocks.7.ffwd.net.0.weight', 'blocks.7.ffwd.net.3.bias', 'blocks.7.ffwd.net.3.weight']
+[TARGET 1/5] baseline_step=1 target_step=1 file=checkpoint_step_1.pt
+[INFO] JVP method resolved to autodiff
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=1 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=10.80s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=2 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=3 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=4 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=5 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=6 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=7 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=attention layer=8 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=1 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=2 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=3 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=4 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=5 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=6 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=7 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=1 component=mlp layer=8 relative_error=nan alignment=nan amplitude_ratio=nan relative_parameter_displacement=0 time=0.91s
+[TARGET 2/5] baseline_step=1 target_step=18 file=checkpoint_step_18.pt
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=1 relative_error=0.0083930014 alignment=0.99996752 amplitude_ratio=1.0023105 relative_parameter_displacement=0.00077139872 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=2 relative_error=0.0072995167 alignment=0.99997641 amplitude_ratio=1.0024485 relative_parameter_displacement=0.00079971194 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=3 relative_error=0.005835362 alignment=0.99998807 amplitude_ratio=1.0031819 relative_parameter_displacement=0.00077704425 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=4 relative_error=0.0052073549 alignment=0.99998913 amplitude_ratio=1.0023093 relative_parameter_displacement=0.00079302822 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=5 relative_error=0.0040441741 alignment=0.9999946 amplitude_ratio=1.0023517 relative_parameter_displacement=0.00077304372 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=6 relative_error=0.0030332566 alignment=0.99999709 amplitude_ratio=1.0018366 relative_parameter_displacement=0.00074494507 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=7 relative_error=0.0020152411 alignment=0.99999857 amplitude_ratio=1.0010987 relative_parameter_displacement=0.00075972895 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=18 component=attention layer=8 relative_error=0.0016192261 alignment=0.99999928 amplitude_ratio=1.0010827 relative_parameter_displacement=0.00073220168 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=1 relative_error=0.096835476 alignment=0.9979029 amplitude_ratio=1.0699259 relative_parameter_displacement=0.027395733 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=2 relative_error=0.076676672 alignment=0.99877152 amplitude_ratio=1.0572854 relative_parameter_displacement=0.028150194 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=3 relative_error=0.054483405 alignment=0.99937692 amplitude_ratio=1.040882 relative_parameter_displacement=0.028012982 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=4 relative_error=0.042061399 alignment=0.99959306 amplitude_ratio=1.0305034 relative_parameter_displacement=0.028813727 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=5 relative_error=0.037245136 alignment=0.99964752 amplitude_ratio=1.0257695 relative_parameter_displacement=0.028956986 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=6 relative_error=0.02801331 alignment=0.99970873 amplitude_ratio=1.0139316 relative_parameter_displacement=0.029106902 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=7 relative_error=0.030618673 alignment=0.99955235 amplitude_ratio=1.0060634 relative_parameter_displacement=0.028947835 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=18 component=mlp layer=8 relative_error=0.027951222 alignment=0.99961323 amplitude_ratio=1.0024204 relative_parameter_displacement=0.02952695 time=0.92s
+[TARGET 3/5] baseline_step=1 target_step=335 file=checkpoint_step_335.pt
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=1 relative_error=0.12484851 alignment=0.99219053 amplitude_ratio=0.99759348 relative_parameter_displacement=0.017535428 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=2 relative_error=0.10439081 alignment=0.99465162 amplitude_ratio=0.97950917 relative_parameter_displacement=0.019765562 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=3 relative_error=0.086763368 alignment=0.99630131 amplitude_ratio=0.98429378 relative_parameter_displacement=0.021559994 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=4 relative_error=0.091670398 alignment=0.99613912 amplitude_ratio=0.96974569 relative_parameter_displacement=0.023669002 time=0.98s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=5 relative_error=0.064368844 alignment=0.99797248 amplitude_ratio=0.98835897 relative_parameter_displacement=0.019855569 time=0.94s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=6 relative_error=0.050046622 alignment=0.998781 amplitude_ratio=0.99052542 relative_parameter_displacement=0.019494966 time=0.94s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=7 relative_error=0.023554518 alignment=0.99974295 amplitude_ratio=0.99335701 relative_parameter_displacement=0.016062212 time=0.94s
+[RESULT] split=test baseline_step=1 target_step=335 component=attention layer=8 relative_error=0.017477402 alignment=0.99985335 amplitude_ratio=0.99636442 relative_parameter_displacement=0.014862686 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=1 relative_error=0.42761687 alignment=0.90396181 amplitude_ratio=0.90573252 relative_parameter_displacement=0.31971259 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=2 relative_error=0.36674022 alignment=0.93235075 amplitude_ratio=0.99380236 relative_parameter_displacement=0.33602158 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=3 relative_error=0.42307063 alignment=0.93360636 amplitude_ratio=1.1585721 relative_parameter_displacement=0.33601546 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=4 relative_error=0.32083269 alignment=0.95151818 amplitude_ratio=1.0427347 relative_parameter_displacement=0.33290884 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=5 relative_error=0.33948548 alignment=0.94459436 amplitude_ratio=0.85794049 relative_parameter_displacement=0.34115083 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=6 relative_error=0.3897314 alignment=0.93591882 amplitude_ratio=0.76908179 relative_parameter_displacement=0.35398658 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=7 relative_error=0.4385001 alignment=0.90790505 amplitude_ratio=0.77916532 relative_parameter_displacement=0.36307761 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=335 component=mlp layer=8 relative_error=0.51365554 alignment=0.87331131 amplitude_ratio=0.71047811 relative_parameter_displacement=0.39674744 time=0.91s
+[TARGET 4/5] baseline_step=1 target_step=5462 file=checkpoint_step_5462.pt
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=1 relative_error=0.411308 alignment=0.94651313 amplitude_ratio=1.2015844 relative_parameter_displacement=0.063749007 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=2 relative_error=0.22460684 alignment=0.98093375 amplitude_ratio=1.0935359 relative_parameter_displacement=0.06053672 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=3 relative_error=0.26534417 alignment=0.9660907 amplitude_ratio=1.0272362 relative_parameter_displacement=0.080717695 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=4 relative_error=0.13405514 alignment=0.99099268 amplitude_ratio=0.99709776 relative_parameter_displacement=0.08166977 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=5 relative_error=0.12000116 alignment=0.99286549 amplitude_ratio=1.0063623 relative_parameter_displacement=0.076207907 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=6 relative_error=0.081715078 alignment=0.99687637 amplitude_ratio=1.0178488 relative_parameter_displacement=0.087470521 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=7 relative_error=0.083414821 alignment=0.99652382 amplitude_ratio=1.0007374 relative_parameter_displacement=0.09007218 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=attention layer=8 relative_error=0.035824132 alignment=0.99938321 amplitude_ratio=1.0064667 relative_parameter_displacement=0.045930789 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=1 relative_error=3.6913762 alignment=0.54741703 amplitude_ratio=4.1426811 relative_parameter_displacement=1.1516639 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=2 relative_error=2.6627926 alignment=0.11151946 amplitude_ratio=2.5819245 relative_parameter_displacement=1.1615629 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=3 relative_error=2.0246042 alignment=0.43842291 amplitude_ratio=2.2525995 relative_parameter_displacement=1.310163 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=4 relative_error=1.7892495 alignment=0.70339798 amplitude_ratio=2.3454036 relative_parameter_displacement=1.4399903 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=5 relative_error=1.1696664 alignment=0.74932572 amplitude_ratio=1.7134878 relative_parameter_displacement=1.5020083 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=6 relative_error=0.79131996 alignment=0.76198898 amplitude_ratio=1.2167576 relative_parameter_displacement=1.660074 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=7 relative_error=1.0639273 alignment=0.62305783 amplitude_ratio=1.3442668 relative_parameter_displacement=1.7556411 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=5462 component=mlp layer=8 relative_error=1.0383673 alignment=0.46413753 amplitude_ratio=1.0060141 relative_parameter_displacement=1.720863 time=0.91s
+[TARGET 5/5] baseline_step=1 target_step=100000 file=checkpoint_step_100000.pt
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=1 relative_error=0.6824297 alignment=0.90206557 amplitude_ratio=1.4306794 relative_parameter_displacement=0.1361562 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=2 relative_error=0.5109333 alignment=0.89435412 amplitude_ratio=1.1411782 relative_parameter_displacement=0.14837089 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=3 relative_error=0.51846894 alignment=0.86804988 amplitude_ratio=1.0174508 relative_parameter_displacement=0.17579891 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=4 relative_error=0.2723033 alignment=0.96222608 amplitude_ratio=0.9675281 relative_parameter_displacement=0.18602396 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=5 relative_error=0.24687021 alignment=0.97040345 amplitude_ratio=1.0216651 relative_parameter_displacement=0.19567142 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=6 relative_error=0.25106741 alignment=0.9679727 amplitude_ratio=0.96552366 relative_parameter_displacement=0.20583551 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=7 relative_error=0.26804543 alignment=0.96991742 amplitude_ratio=0.85772049 relative_parameter_displacement=0.24573225 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=attention layer=8 relative_error=0.40661694 alignment=0.9228015 amplitude_ratio=0.79280174 relative_parameter_displacement=0.2106128 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=1 relative_error=2.4540052 alignment=0.31865431 amplitude_ratio=2.5822095 relative_parameter_displacement=2.1281212 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=2 relative_error=2.0571818 alignment=-0.057868608 amplitude_ratio=1.7408381 relative_parameter_displacement=2.1403891 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=3 relative_error=1.3934924 alignment=0.44963322 amplitude_ratio=1.5192084 relative_parameter_displacement=2.7355695 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=4 relative_error=1.82316 alignment=0.39507903 amplitude_ratio=1.9698806 relative_parameter_displacement=3.5040669 time=0.92s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=5 relative_error=1.9748618 alignment=0.4095509 amplitude_ratio=2.1610677 relative_parameter_displacement=4.0358439 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=6 relative_error=1.5689131 alignment=0.36030348 amplitude_ratio=1.6217736 relative_parameter_displacement=5.1434235 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=7 relative_error=1.5822387 alignment=0.17147062 amplitude_ratio=1.4095666 relative_parameter_displacement=6.0618708 time=0.91s
+[RESULT] split=test baseline_step=1 target_step=100000 component=mlp layer=8 relative_error=2.9391291 alignment=0.40326932 amplitude_ratio=3.1963153 relative_parameter_displacement=6.8886575 time=0.92s
+[DONE] diagnostics saved in /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/linearization_L4_v1
+[DONE] total time=83.42s
+[END] 2026-06-12 09:17:54 return_code=0

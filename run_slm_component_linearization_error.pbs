@@ -1,0 +1,218 @@
+#!/bin/bash
+#PBS -N slm_component_linearization
+#PBS -q gpuq-longrun
+#PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
+#PBS -l walltime=24:00:00
+#PBS -j oe
+#PBS -o pbs_logs/
+
+set -eo pipefail
+
+# =============================================================================
+# Paths
+# =============================================================================
+
+REPO_DIR="${REPO_DIR:-${PBS_O_WORKDIR:-$PWD}}"                                        # Repository root.
+SOURCE_DIR="${SOURCE_DIR:-$REPO_DIR/SLM}"                                             # Folder containing init.py and models/.
+RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/compute_slm_component_linearization_error.py}"    # Updated layer-wise attention/MLP diagnostic.
+
+DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"                                              # Training runs are read from data/.
+COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}"        # Diagnostics are written under collected_results/.
+
+# =============================================================================
+# Run selection
+# =============================================================================
+
+RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"                                             # Experiment folder under data/.
+RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}"           # Leaf run folder containing checkpoints/.
+RUN_DIR="${RUN_DIR:-}"                                                                 # Optional full leaf path; overrides RUN_NAME and RUN_ID.
+OUTPUT_NAME="${OUTPUT_NAME:-component_linearization_L3_v1}"                            # Folder under collected_results/.
+
+# =============================================================================
+# Diagnostic settings
+# =============================================================================
+
+NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-5}"      # Select five saved checkpoints log-spaced in actual optimizer step.
+MAX_STEP="${MAX_STEP:-}"                     # Optional largest checkpoint step; empty means all saved checkpoints.
+
+# The earliest selected checkpoint is the only baseline. Each selected target is
+# analyzed separately for attention and MLP parameters in every Transformer layer.
+
+SPLIT="${SPLIT:-test}"                       # test | train | both.
+SUBSET_SIZE="${SUBSET_SIZE:-512}"            # Same fixed RHM sequences for every target, component and layer.
+SUBSET_SEED="${SUBSET_SEED:-12345}"          # Seed for selecting/generating the fixed diagnostic sequences.
+BATCH_SIZE="${BATCH_SIZE:-32}"               # JVP batch size; reduce first if GPU memory is insufficient.
+
+REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}" # auto | saved | generate.
+JVP_METHOD="${JVP_METHOD:-auto}"             # auto | autodiff | finite_difference; auto prefers exact torch.func.jvp.
+FINITE_DIFFERENCE_EPSILON="${FINITE_DIFFERENCE_EPSILON:-0.001}" # Used only by finite-difference fallback.
+CENTER_LOGITS="${CENTER_LOGITS:-1}"           # 1 removes the softmax-invariant vocabulary-mean logit direction.
+
+# =============================================================================
+# Runtime
+# =============================================================================
+
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"      # Conda environment with PyTorch and repository requirements.
+PYTHON_BIN="${PYTHON_BIN:-python}"           # Python executable.
+DEVICE="${DEVICE:-cuda}"                     # cuda | cpu.
+
+JOB_ID="${PBS_JOBID:-no_jobid}"
+
+mkdir -p "$REPO_DIR/pbs_logs"
+mkdir -p "$COLLECTED_RESULTS_ROOT"
+cd "$REPO_DIR"
+
+JOB_LOG="$REPO_DIR/pbs_logs/slm_component_linearization_${JOB_ID}.log"
+
+if command -v module >/dev/null 2>&1; then
+    module purge || true
+fi
+
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export MKL_INTERFACE_LAYER="${MKL_INTERFACE_LAYER:-GNU}"
+
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    conda activate "$CONDA_ENV_NAME"
+else
+    source activate "$CONDA_ENV_NAME"
+fi
+
+set -u
+
+# Some PBS installations expose a GPU UUID rather than a numeric CUDA index.
+ORIGINAL_CVD="${CUDA_VISIBLE_DEVICES:-unset}"
+if [[ "$ORIGINAL_CVD" == GPU-* ]]; then
+    GPU_INDEX="$(
+        "$PYTHON_BIN" - <<'PY'
+import os
+import subprocess
+
+uuid = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+rows = subprocess.check_output(
+    ["nvidia-smi", "--query-gpu=index,uuid", "--format=csv,noheader"],
+    text=True,
+)
+for row in rows.splitlines():
+    index, full_uuid = [item.strip() for item in row.split(",")]
+    if full_uuid == uuid or full_uuid.startswith(uuid):
+        print(index)
+        break
+PY
+    )"
+    if [ -n "$GPU_INDEX" ]; then
+        export CUDA_VISIBLE_DEVICES="$GPU_INDEX"
+    fi
+fi
+
+if [ -n "$RUN_DIR" ]; then
+    RESOLVED_RUN_DIR="$RUN_DIR"
+else
+    RESOLVED_RUN_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
+fi
+
+{
+    echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[INFO] diagnostic_version=layerwise_attention_mlp_first_baseline_v1"
+    echo "[INFO] host=$(hostname)"
+    echo "[INFO] repo_dir=$REPO_DIR"
+    echo "[INFO] source_dir=$SOURCE_DIR"
+    echo "[INFO] run_script=$RUN_SCRIPT"
+    echo "[INFO] data_root=$DATA_ROOT"
+    echo "[INFO] collected_results_root=$COLLECTED_RESULTS_ROOT"
+    echo "[INFO] resolved_run_dir=$RESOLVED_RUN_DIR"
+    echo "[INFO] output_name=$OUTPUT_NAME"
+    echo "[INFO] num_checkpoints=$NUM_CHECKPOINTS"
+    echo "[INFO] baseline=earliest selected checkpoint"
+    echo "[INFO] components=attention,mlp layer-by-layer"
+    echo "[INFO] max_step=${MAX_STEP:-none}"
+    echo "[INFO] split=$SPLIT"
+    echo "[INFO] subset_size=$SUBSET_SIZE"
+    echo "[INFO] subset_seed=$SUBSET_SEED"
+    echo "[INFO] batch_size=$BATCH_SIZE"
+    echo "[INFO] reference_source=$REFERENCE_SOURCE"
+    echo "[INFO] jvp_method=$JVP_METHOD"
+    echo "[INFO] finite_difference_epsilon=$FINITE_DIFFERENCE_EPSILON"
+    echo "[INFO] center_logits=$CENTER_LOGITS"
+    echo "[INFO] device=$DEVICE"
+    echo "[INFO] conda_env=$CONDA_ENV_NAME"
+    echo "[INFO] original_cuda_visible_devices=$ORIGINAL_CVD"
+    echo "[INFO] cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-unset}"
+
+    "$PYTHON_BIN" - <<'PY' || true
+import torch
+print("[INFO] torch=", torch.__version__)
+print("[INFO] cuda_available=", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("[INFO] gpu=", torch.cuda.get_device_name(0))
+PY
+} | tee -a "$JOB_LOG"
+
+if [ ! -f "$RUN_SCRIPT" ]; then
+    echo "[ERROR] Missing updated diagnostic script: $RUN_SCRIPT" | tee -a "$JOB_LOG"
+    exit 1
+fi
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo "[ERROR] Missing source directory: $SOURCE_DIR" | tee -a "$JOB_LOG"
+    exit 1
+fi
+if [ ! -d "$RESOLVED_RUN_DIR/checkpoints" ]; then
+    echo "[ERROR] Missing checkpoint directory: $RESOLVED_RUN_DIR/checkpoints" | tee -a "$JOB_LOG"
+    exit 1
+fi
+
+CMD=(
+    "$PYTHON_BIN" -u "$RUN_SCRIPT"
+    --repo_dir "$REPO_DIR"
+    --source_dir "$SOURCE_DIR"
+    --data_root "$DATA_ROOT"
+    --collected_results_root "$COLLECTED_RESULTS_ROOT"
+    --device "$DEVICE"
+    --num_checkpoints "$NUM_CHECKPOINTS"
+    --split "$SPLIT"
+    --subset_size "$SUBSET_SIZE"
+    --subset_seed "$SUBSET_SEED"
+    --batch_size "$BATCH_SIZE"
+    --reference_source "$REFERENCE_SOURCE"
+    --jvp_method "$JVP_METHOD"
+    --finite_difference_epsilon "$FINITE_DIFFERENCE_EPSILON"
+)
+
+if [ -n "$RUN_DIR" ]; then
+    CMD+=(--run_dir "$RUN_DIR")
+else
+    CMD+=(--run_name "$RUN_NAME" --run_id "$RUN_ID")
+fi
+
+if [ -n "$OUTPUT_NAME" ]; then
+    CMD+=(--output_name "$OUTPUT_NAME")
+fi
+if [ -n "$MAX_STEP" ]; then
+    CMD+=(--max_step "$MAX_STEP")
+fi
+
+case "${CENTER_LOGITS,,}" in
+    1|true|yes|y)
+        CMD+=(--center_logits)
+        ;;
+    0|false|no|n)
+        CMD+=(--no_center_logits)
+        ;;
+    *)
+        echo "[ERROR] Invalid CENTER_LOGITS=$CENTER_LOGITS" | tee -a "$JOB_LOG"
+        exit 1
+        ;;
+esac
+
+{
+    echo "[CMD] ${CMD[*]}"
+    echo "[RUN] launching updated layer-wise attention/MLP linearization diagnostic"
+} | tee -a "$JOB_LOG"
+
+"${CMD[@]}" 2>&1 | tee -a "$JOB_LOG"
+RETURN_CODE=${PIPESTATUS[0]}
+
+echo "[END] $(date '+%Y-%m-%d %H:%M:%S') return_code=$RETURN_CODE" | tee -a "$JOB_LOG"
+exit "$RETURN_CODE"
