@@ -1,0 +1,256 @@
+[START] 2026-06-16 14:36:22
+[INFO] host=dhler2u01-fat
+[INFO] repo_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling
+[INFO] source_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM
+[INFO] run_script=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py
+[INFO] data_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data
+[INFO] collected_results_root=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results
+[INFO] run_name=slm_TR2_uniform_L5_v1
+[INFO] run_id=rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] run_dir_override=unset
+[INFO] resolved_run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] output_name=overlap_weights_TR2_L5_v1
+[INFO] overlap_target=weights
+[INFO] metric=gram
+[INFO] representation_mode=block_update
+[INFO] reference_source=auto
+[INFO] subset_train_size=512
+[INFO] subset_valid_size=512
+[INFO] subset_seed=12345
+[INFO] batch_size=256
+[INFO] num_checkpoints=0
+[INFO] max_step=none
+[INFO] include_embedding=1
+[INFO] include_final_norm=1
+[INFO] temp_root=output_directory
+[INFO] keep_temp=0
+[INFO] device=cuda
+[INFO] conda_env=rhm
+[INFO] original_cuda_visible_devices=GPU-66530730-9906-4b2a-9825-de10bd026a73
+[INFO] cuda_visible_devices=0
+[INFO] torch= 2.3.1+cu118
+[INFO] cuda_available= True
+[INFO] gpu= Tesla V100-SXM2-32GB
+[CMD] python -u /mnt/beegfs/2a/mb12724/franc/small-language-modelling/compute_slm_representation_overlaps.py --repo_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling --source_dir /mnt/beegfs/2a/mb12724/franc/small-language-modelling/SLM --data_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data --collected_results_root /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results --device cuda --overlap_target weights --metric gram --representation_mode block_update --reference_source auto --subset_train_size 512 --subset_valid_size 512 --subset_seed 12345 --batch_size 256 --num_checkpoints 0 --run_name slm_TR2_uniform_L5_v1 --run_id rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1 --output_name overlap_weights_TR2_L5_v1 --include_embedding --include_final_norm
+[RUN] launching overlap computation
+[INFO] run_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_TR2_uniform_L5_v1/rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1
+[INFO] checkpoints=100/100
+[INFO] output_dir=/mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/overlap_weights_TR2_L5_v1
+# parameters: 7298312
+[INFO] loading weights 1/100: checkpoint_step_1.pt
+[INFO] loading weights 2/100: checkpoint_step_2.pt
+[INFO] loading weights 3/100: checkpoint_step_3.pt
+[INFO] loading weights 4/100: checkpoint_step_4.pt
+[INFO] loading weights 5/100: checkpoint_step_5.pt
+[INFO] loading weights 6/100: checkpoint_step_6.pt
+[INFO] loading weights 7/100: checkpoint_step_7.pt
+[INFO] loading weights 8/100: checkpoint_step_8.pt
+[INFO] loading weights 9/100: checkpoint_step_9.pt
+[INFO] loading weights 10/100: checkpoint_step_10.pt
+[INFO] loading weights 11/100: checkpoint_step_11.pt
+[INFO] loading weights 12/100: checkpoint_step_12.pt
+[INFO] loading weights 13/100: checkpoint_step_13.pt
+[INFO] loading weights 14/100: checkpoint_step_14.pt
+[INFO] loading weights 15/100: checkpoint_step_15.pt
+[INFO] loading weights 16/100: checkpoint_step_16.pt
+[INFO] loading weights 17/100: checkpoint_step_17.pt
+[INFO] loading weights 18/100: checkpoint_step_18.pt
+[INFO] loading weights 19/100: checkpoint_step_19.pt
+[INFO] loading weights 20/100: checkpoint_step_20.pt
+[INFO] loading weights 21/100: checkpoint_step_21.pt
+[INFO] loading weights 22/100: checkpoint_step_22.pt
+[INFO] loading weights 23/100: checkpoint_step_23.pt
+[INFO] loading weights 24/100: checkpoint_step_24.pt
+[INFO] loading weights 25/100: checkpoint_step_25.pt
+[INFO] loading weights 26/100: checkpoint_step_26.pt
+[INFO] loading weights 27/100: checkpoint_step_27.pt
+[INFO] loading weights 28/100: checkpoint_step_28.pt
+[INFO] loading weights 29/100: checkpoint_step_29.pt
+[INFO] loading weights 30/100: checkpoint_step_30.pt
+[INFO] loading weights 31/100: checkpoint_step_33.pt
+[INFO] loading weights 32/100: checkpoint_step_37.pt
+[INFO] loading weights 33/100: checkpoint_step_41.pt
+[INFO] loading weights 34/100: checkpoint_step_46.pt
+[INFO] loading weights 35/100: checkpoint_step_52.pt
+[INFO] loading weights 36/100: checkpoint_step_59.pt
+[INFO] loading weights 37/100: checkpoint_step_66.pt
+[INFO] loading weights 38/100: checkpoint_step_74.pt
+[INFO] loading weights 39/100: checkpoint_step_83.pt
+[INFO] loading weights 40/100: checkpoint_step_93.pt
+[INFO] loading weights 41/100: checkpoint_step_105.pt
+[INFO] loading weights 42/100: checkpoint_step_118.pt
+[INFO] loading weights 43/100: checkpoint_step_132.pt
+[INFO] loading weights 44/100: checkpoint_step_148.pt
+[INFO] loading weights 45/100: checkpoint_step_167.pt
+[INFO] loading weights 46/100: checkpoint_step_187.pt
+[INFO] loading weights 47/100: checkpoint_step_210.pt
+[INFO] loading weights 48/100: checkpoint_step_236.pt
+[INFO] loading weights 49/100: checkpoint_step_266.pt
+[INFO] loading weights 50/100: checkpoint_step_298.pt
+[INFO] loading weights 51/100: checkpoint_step_335.pt
+[INFO] loading weights 52/100: checkpoint_step_376.pt
+[INFO] loading weights 53/100: checkpoint_step_423.pt
+[INFO] loading weights 54/100: checkpoint_step_475.pt
+[INFO] loading weights 55/100: checkpoint_step_534.pt
+[INFO] loading weights 56/100: checkpoint_step_599.pt
+[INFO] loading weights 57/100: checkpoint_step_673.pt
+[INFO] loading weights 58/100: checkpoint_step_756.pt
+[INFO] loading weights 59/100: checkpoint_step_850.pt
+[INFO] loading weights 60/100: checkpoint_step_955.pt
+[INFO] loading weights 61/100: checkpoint_step_1072.pt
+[INFO] loading weights 62/100: checkpoint_step_1205.pt
+[INFO] loading weights 63/100: checkpoint_step_1353.pt
+[INFO] loading weights 64/100: checkpoint_step_1520.pt
+[INFO] loading weights 65/100: checkpoint_step_1707.pt
+[INFO] loading weights 66/100: checkpoint_step_1918.pt
+[INFO] loading weights 67/100: checkpoint_step_2154.pt
+[INFO] loading weights 68/100: checkpoint_step_2420.pt
+[INFO] loading weights 69/100: checkpoint_step_2719.pt
+[INFO] loading weights 70/100: checkpoint_step_3054.pt
+[INFO] loading weights 71/100: checkpoint_step_3430.pt
+[INFO] loading weights 72/100: checkpoint_step_3854.pt
+[INFO] loading weights 73/100: checkpoint_step_4329.pt
+[INFO] loading weights 74/100: checkpoint_step_4863.pt
+[INFO] loading weights 75/100: checkpoint_step_5462.pt
+[INFO] loading weights 76/100: checkpoint_step_6136.pt
+[INFO] loading weights 77/100: checkpoint_step_6893.pt
+[INFO] loading weights 78/100: checkpoint_step_7743.pt
+[INFO] loading weights 79/100: checkpoint_step_8697.pt
+[INFO] loading weights 80/100: checkpoint_step_9770.pt
+[INFO] loading weights 81/100: checkpoint_step_10975.pt
+[INFO] loading weights 82/100: checkpoint_step_12328.pt
+[INFO] loading weights 83/100: checkpoint_step_13849.pt
+[INFO] loading weights 84/100: checkpoint_step_15557.pt
+[INFO] loading weights 85/100: checkpoint_step_17475.pt
+[INFO] loading weights 86/100: checkpoint_step_19630.pt
+[INFO] loading weights 87/100: checkpoint_step_22051.pt
+[INFO] loading weights 88/100: checkpoint_step_24771.pt
+[INFO] loading weights 89/100: checkpoint_step_27826.pt
+[INFO] loading weights 90/100: checkpoint_step_31257.pt
+[INFO] loading weights 91/100: checkpoint_step_35112.pt
+[INFO] loading weights 92/100: checkpoint_step_39442.pt
+[INFO] loading weights 93/100: checkpoint_step_44306.pt
+[INFO] loading weights 94/100: checkpoint_step_49770.pt
+[INFO] loading weights 95/100: checkpoint_step_55908.pt
+[INFO] loading weights 96/100: checkpoint_step_62803.pt
+[INFO] loading weights 97/100: checkpoint_step_70548.pt
+[INFO] loading weights 98/100: checkpoint_step_79248.pt
+[INFO] loading weights 99/100: checkpoint_step_89022.pt
+[INFO] loading weights 100/100: checkpoint_step_100000.pt
+[INFO] parameter overlap 1/115: token_embedding_table.weight
+[INFO] parameter overlap 2/115: token_embedding_table.bias
+[INFO] parameter overlap 3/115: position_embedding_table.weight
+[INFO] parameter overlap 4/115: blocks.0.attn.WQ
+[INFO] parameter overlap 5/115: blocks.0.attn.WK
+[INFO] parameter overlap 6/115: blocks.0.attn.WV
+[INFO] parameter overlap 7/115: blocks.0.ffwd.net.0.weight
+[INFO] parameter overlap 8/115: blocks.0.ffwd.net.0.bias
+[INFO] parameter overlap 9/115: blocks.0.ffwd.net.3.weight
+[INFO] parameter overlap 10/115: blocks.0.ffwd.net.3.bias
+[INFO] parameter overlap 11/115: blocks.0.ln1.weight
+[INFO] parameter overlap 12/115: blocks.0.ln1.bias
+[INFO] parameter overlap 13/115: blocks.0.ln2.weight
+[INFO] parameter overlap 14/115: blocks.0.ln2.bias
+[INFO] parameter overlap 15/115: blocks.1.attn.WQ
+[INFO] parameter overlap 16/115: blocks.1.attn.WK
+[INFO] parameter overlap 17/115: blocks.1.attn.WV
+[INFO] parameter overlap 18/115: blocks.1.ffwd.net.0.weight
+[INFO] parameter overlap 19/115: blocks.1.ffwd.net.0.bias
+[INFO] parameter overlap 20/115: blocks.1.ffwd.net.3.weight
+[INFO] parameter overlap 21/115: blocks.1.ffwd.net.3.bias
+[INFO] parameter overlap 22/115: blocks.1.ln1.weight
+[INFO] parameter overlap 23/115: blocks.1.ln1.bias
+[INFO] parameter overlap 24/115: blocks.1.ln2.weight
+[INFO] parameter overlap 25/115: blocks.1.ln2.bias
+[INFO] parameter overlap 26/115: blocks.2.attn.WQ
+[INFO] parameter overlap 27/115: blocks.2.attn.WK
+[INFO] parameter overlap 28/115: blocks.2.attn.WV
+[INFO] parameter overlap 29/115: blocks.2.ffwd.net.0.weight
+[INFO] parameter overlap 30/115: blocks.2.ffwd.net.0.bias
+[INFO] parameter overlap 31/115: blocks.2.ffwd.net.3.weight
+[INFO] parameter overlap 32/115: blocks.2.ffwd.net.3.bias
+[INFO] parameter overlap 33/115: blocks.2.ln1.weight
+[INFO] parameter overlap 34/115: blocks.2.ln1.bias
+[INFO] parameter overlap 35/115: blocks.2.ln2.weight
+[INFO] parameter overlap 36/115: blocks.2.ln2.bias
+[INFO] parameter overlap 37/115: blocks.3.attn.WQ
+[INFO] parameter overlap 38/115: blocks.3.attn.WK
+[INFO] parameter overlap 39/115: blocks.3.attn.WV
+[INFO] parameter overlap 40/115: blocks.3.ffwd.net.0.weight
+[INFO] parameter overlap 41/115: blocks.3.ffwd.net.0.bias
+[INFO] parameter overlap 42/115: blocks.3.ffwd.net.3.weight
+[INFO] parameter overlap 43/115: blocks.3.ffwd.net.3.bias
+[INFO] parameter overlap 44/115: blocks.3.ln1.weight
+[INFO] parameter overlap 45/115: blocks.3.ln1.bias
+[INFO] parameter overlap 46/115: blocks.3.ln2.weight
+[INFO] parameter overlap 47/115: blocks.3.ln2.bias
+[INFO] parameter overlap 48/115: blocks.4.attn.WQ
+[INFO] parameter overlap 49/115: blocks.4.attn.WK
+[INFO] parameter overlap 50/115: blocks.4.attn.WV
+[INFO] parameter overlap 51/115: blocks.4.ffwd.net.0.weight
+[INFO] parameter overlap 52/115: blocks.4.ffwd.net.0.bias
+[INFO] parameter overlap 53/115: blocks.4.ffwd.net.3.weight
+[INFO] parameter overlap 54/115: blocks.4.ffwd.net.3.bias
+[INFO] parameter overlap 55/115: blocks.4.ln1.weight
+[INFO] parameter overlap 56/115: blocks.4.ln1.bias
+[INFO] parameter overlap 57/115: blocks.4.ln2.weight
+[INFO] parameter overlap 58/115: blocks.4.ln2.bias
+[INFO] parameter overlap 59/115: blocks.5.attn.WQ
+[INFO] parameter overlap 60/115: blocks.5.attn.WK
+[INFO] parameter overlap 61/115: blocks.5.attn.WV
+[INFO] parameter overlap 62/115: blocks.5.ffwd.net.0.weight
+[INFO] parameter overlap 63/115: blocks.5.ffwd.net.0.bias
+[INFO] parameter overlap 64/115: blocks.5.ffwd.net.3.weight
+[INFO] parameter overlap 65/115: blocks.5.ffwd.net.3.bias
+[INFO] parameter overlap 66/115: blocks.5.ln1.weight
+[INFO] parameter overlap 67/115: blocks.5.ln1.bias
+[INFO] parameter overlap 68/115: blocks.5.ln2.weight
+[INFO] parameter overlap 69/115: blocks.5.ln2.bias
+[INFO] parameter overlap 70/115: blocks.6.attn.WQ
+[INFO] parameter overlap 71/115: blocks.6.attn.WK
+[INFO] parameter overlap 72/115: blocks.6.attn.WV
+[INFO] parameter overlap 73/115: blocks.6.ffwd.net.0.weight
+[INFO] parameter overlap 74/115: blocks.6.ffwd.net.0.bias
+[INFO] parameter overlap 75/115: blocks.6.ffwd.net.3.weight
+[INFO] parameter overlap 76/115: blocks.6.ffwd.net.3.bias
+[INFO] parameter overlap 77/115: blocks.6.ln1.weight
+[INFO] parameter overlap 78/115: blocks.6.ln1.bias
+[INFO] parameter overlap 79/115: blocks.6.ln2.weight
+[INFO] parameter overlap 80/115: blocks.6.ln2.bias
+[INFO] parameter overlap 81/115: blocks.7.attn.WQ
+[INFO] parameter overlap 82/115: blocks.7.attn.WK
+[INFO] parameter overlap 83/115: blocks.7.attn.WV
+[INFO] parameter overlap 84/115: blocks.7.ffwd.net.0.weight
+[INFO] parameter overlap 85/115: blocks.7.ffwd.net.0.bias
+[INFO] parameter overlap 86/115: blocks.7.ffwd.net.3.weight
+[INFO] parameter overlap 87/115: blocks.7.ffwd.net.3.bias
+[INFO] parameter overlap 88/115: blocks.7.ln1.weight
+[INFO] parameter overlap 89/115: blocks.7.ln1.bias
+[INFO] parameter overlap 90/115: blocks.7.ln2.weight
+[INFO] parameter overlap 91/115: blocks.7.ln2.bias
+[INFO] parameter overlap 92/115: blocks.8.attn.WQ
+[INFO] parameter overlap 93/115: blocks.8.attn.WK
+[INFO] parameter overlap 94/115: blocks.8.attn.WV
+[INFO] parameter overlap 95/115: blocks.8.ffwd.net.0.weight
+[INFO] parameter overlap 96/115: blocks.8.ffwd.net.0.bias
+[INFO] parameter overlap 97/115: blocks.8.ffwd.net.3.weight
+[INFO] parameter overlap 98/115: blocks.8.ffwd.net.3.bias
+[INFO] parameter overlap 99/115: blocks.8.ln1.weight
+[INFO] parameter overlap 100/115: blocks.8.ln1.bias
+[INFO] parameter overlap 101/115: blocks.8.ln2.weight
+[INFO] parameter overlap 102/115: blocks.8.ln2.bias
+[INFO] parameter overlap 103/115: blocks.9.attn.WQ
+[INFO] parameter overlap 104/115: blocks.9.attn.WK
+[INFO] parameter overlap 105/115: blocks.9.attn.WV
+[INFO] parameter overlap 106/115: blocks.9.ffwd.net.0.weight
+[INFO] parameter overlap 107/115: blocks.9.ffwd.net.0.bias
+[INFO] parameter overlap 108/115: blocks.9.ffwd.net.3.weight
+[INFO] parameter overlap 109/115: blocks.9.ffwd.net.3.bias
+[INFO] parameter overlap 110/115: blocks.9.ln1.weight
+[INFO] parameter overlap 111/115: blocks.9.ln1.bias
+[INFO] parameter overlap 112/115: blocks.9.ln2.weight
+[INFO] parameter overlap 113/115: blocks.9.ln2.bias
+[INFO] parameter overlap 114/115: lm_head.weight
+[INFO] parameter overlap 115/115: lm_head.bias
+[INFO] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/collected_results/overlap_weights_TR2_L5_v1/weight_overlaps.npz
+[END] 2026-06-16 14:38:05 return_code=0

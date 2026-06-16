@@ -212,3 +212,477 @@ Training for 100000 optimizer steps
 [RHM] step=83 train_Mpos_l=[0.99998, 0.23803, 0.52898, 0.58237, 0.75513, 0.80333] val_Mpos_l=[0.99999, 0.23736, 0.52845, 0.58142, 0.75753, 0.80522] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
 [VALID] step=83 epoch=0.3242 running=2.888307 train_loss=2.886600 val_loss=2.885783 val_acc=0.157236 log_specnorm=196.885476
 [CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_93.pt
+[RHM] step=93 train_peeled_loss_l=[0.05473, 1.09464, 0.72525, 0.63205, 0.46817, 0.40254] val_peeled_loss_l=[0.05464, 1.09447, 0.72431, 0.63281, 0.46840, 0.40282]
+[RHM] step=93 train_Mpos_l=[0.99991, 0.24687, 0.52972, 0.58223, 0.75625, 0.80527] val_Mpos_l=[0.99994, 0.24629, 0.53024, 0.58090, 0.75683, 0.80609] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=93 epoch=0.3633 running=2.871193 train_loss=2.870812 val_loss=2.870216 val_acc=0.160970 log_specnorm=197.454221
+[TRAIN] step=100/100000 epoch=0.3906 loss=2.869722 dt=122.91ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_105.pt
+[RHM] step=105 train_peeled_loss_l=[0.04094, 1.08923, 0.72480, 0.63336, 0.46794, 0.40226] val_peeled_loss_l=[0.04091, 1.08946, 0.72354, 0.63383, 0.46834, 0.40239]
+[RHM] step=105 train_Mpos_l=[1.00000, 0.23378, 0.53625, 0.58164, 0.75887, 0.80518] val_Mpos_l=[1.00000, 0.23303, 0.53716, 0.58081, 0.75939, 0.80620] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=105 epoch=0.4102 running=2.858977 train_loss=2.857411 val_loss=2.856670 val_acc=0.164412 log_specnorm=197.849904
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_118.pt
+[RHM] step=118 train_peeled_loss_l=[0.03422, 1.08213, 0.71847, 0.62968, 0.46600, 0.40064] val_peeled_loss_l=[0.03419, 1.08169, 0.71792, 0.63015, 0.46615, 0.40065]
+[RHM] step=118 train_Mpos_l=[1.00000, 0.23633, 0.53915, 0.58516, 0.75997, 0.80492] val_Mpos_l=[1.00000, 0.23553, 0.53993, 0.58387, 0.76079, 0.80767] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=118 epoch=0.4609 running=2.850071 train_loss=2.847010 val_loss=2.846317 val_acc=0.166738 log_specnorm=198.123613
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_132.pt
+[RHM] step=132 train_peeled_loss_l=[0.02969, 1.08208, 0.71823, 0.62929, 0.46755, 0.40168] val_peeled_loss_l=[0.02965, 1.08191, 0.71753, 0.63023, 0.46733, 0.40163]
+[RHM] step=132 train_Mpos_l=[1.00000, 0.24901, 0.53866, 0.58504, 0.75952, 0.80462] val_Mpos_l=[1.00000, 0.24842, 0.53931, 0.58376, 0.76015, 0.80582] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=132 epoch=0.5156 running=2.838620 train_loss=2.847903 val_loss=2.847425 val_acc=0.166286 log_specnorm=198.357131
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_148.pt
+[RHM] step=148 train_peeled_loss_l=[0.02590, 1.06794, 0.71575, 0.62832, 0.46571, 0.39948] val_peeled_loss_l=[0.02588, 1.06775, 0.71478, 0.62976, 0.46526, 0.39970]
+[RHM] step=148 train_Mpos_l=[1.00000, 0.25565, 0.54137, 0.58674, 0.76082, 0.80511] val_Mpos_l=[1.00000, 0.25458, 0.54259, 0.58435, 0.76173, 0.80617] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=148 epoch=0.5781 running=2.838909 train_loss=2.836848 val_loss=2.836302 val_acc=0.170486 log_specnorm=198.647566
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_167.pt
+[RHM] step=167 train_peeled_loss_l=[0.02227, 1.06320, 0.71519, 0.62671, 0.46486, 0.39856] val_peeled_loss_l=[0.02226, 1.06317, 0.71435, 0.62757, 0.46418, 0.39857]
+[RHM] step=167 train_Mpos_l=[1.00000, 0.25312, 0.53804, 0.58591, 0.76155, 0.80846] val_Mpos_l=[1.00000, 0.25277, 0.53947, 0.58453, 0.76111, 0.80953] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=167 epoch=0.6523 running=2.829973 train_loss=2.829602 val_loss=2.829409 val_acc=0.169031 log_specnorm=199.038565
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_187.pt
+[RHM] step=187 train_peeled_loss_l=[0.02022, 1.05485, 0.71201, 0.62536, 0.46317, 0.39842] val_peeled_loss_l=[0.02020, 1.05504, 0.71160, 0.62627, 0.46294, 0.39826]
+[RHM] step=187 train_Mpos_l=[1.00000, 0.26340, 0.54288, 0.58730, 0.76054, 0.80662] val_Mpos_l=[1.00000, 0.26218, 0.54312, 0.58594, 0.76167, 0.80823] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=187 epoch=0.7305 running=2.822815 train_loss=2.823147 val_loss=2.823233 val_acc=0.171305 log_specnorm=199.397839
+[TRAIN] step=200/100000 epoch=0.7812 loss=2.814975 dt=123.12ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_210.pt
+[RHM] step=210 train_peeled_loss_l=[0.01772, 1.04234, 0.71410, 0.62707, 0.46452, 0.39932] val_peeled_loss_l=[0.01771, 1.04214, 0.71352, 0.62819, 0.46454, 0.39880]
+[RHM] step=210 train_Mpos_l=[1.00000, 0.27472, 0.54166, 0.58847, 0.76083, 0.80753] val_Mpos_l=[1.00000, 0.27406, 0.54230, 0.58688, 0.76125, 0.80914] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=210 epoch=0.8203 running=2.811994 train_loss=2.816258 val_loss=2.816006 val_acc=0.172575 log_specnorm=199.748567
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_236.pt
+[RHM] step=236 train_peeled_loss_l=[0.01639, 1.03492, 0.71180, 0.62356, 0.46319, 0.39775] val_peeled_loss_l=[0.01637, 1.03464, 0.71103, 0.62452, 0.46335, 0.39821]
+[RHM] step=236 train_Mpos_l=[1.00000, 0.29497, 0.53934, 0.58830, 0.76092, 0.80760] val_Mpos_l=[1.00000, 0.29452, 0.53994, 0.58729, 0.76128, 0.80872] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=236 epoch=0.9219 running=2.813211 train_loss=2.809276 val_loss=2.809209 val_acc=0.174110 log_specnorm=200.080150
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_266.pt
+[RHM] step=266 train_peeled_loss_l=[0.01519, 1.00804, 0.70878, 0.62302, 0.46350, 0.39775] val_peeled_loss_l=[0.01517, 1.00801, 0.70796, 0.62380, 0.46318, 0.39830]
+[RHM] step=266 train_Mpos_l=[1.00000, 0.32710, 0.54128, 0.59295, 0.76073, 0.80911] val_Mpos_l=[1.00000, 0.32635, 0.54238, 0.59140, 0.76092, 0.80882] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=266 epoch=1.0391 running=2.803903 train_loss=2.799242 val_loss=2.799185 val_acc=0.176410 log_specnorm=200.452948
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_298.pt
+[RHM] step=298 train_peeled_loss_l=[0.01343, 0.98183, 0.70525, 0.62116, 0.46209, 0.39608] val_peeled_loss_l=[0.01343, 0.98221, 0.70447, 0.62244, 0.46266, 0.39591]
+[RHM] step=298 train_Mpos_l=[1.00000, 0.36152, 0.54997, 0.59715, 0.76507, 0.80899] val_Mpos_l=[1.00000, 0.36157, 0.55061, 0.59549, 0.76486, 0.81094] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=298 epoch=1.1641 running=2.783540 train_loss=2.785638 val_loss=2.785701 val_acc=0.178821 log_specnorm=201.011120
+[TRAIN] step=300/100000 epoch=1.1719 loss=2.784914 dt=130.01ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_335.pt
+[RHM] step=335 train_peeled_loss_l=[0.01254, 0.96061, 0.70548, 0.61960, 0.46111, 0.39621] val_peeled_loss_l=[0.01252, 0.96090, 0.70456, 0.62051, 0.46128, 0.39613]
+[RHM] step=335 train_Mpos_l=[1.00000, 0.39199, 0.54843, 0.59968, 0.76335, 0.80915] val_Mpos_l=[1.00000, 0.39209, 0.54960, 0.59790, 0.76413, 0.80993] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=335 epoch=1.3086 running=2.772846 train_loss=2.772416 val_loss=2.772858 val_acc=0.181291 log_specnorm=201.556893
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_376.pt
+[RHM] step=376 train_peeled_loss_l=[0.01196, 0.94408, 0.70693, 0.62228, 0.46390, 0.39765] val_peeled_loss_l=[0.01195, 0.94388, 0.70595, 0.62288, 0.46388, 0.39830]
+[RHM] step=376 train_Mpos_l=[1.00000, 0.40919, 0.55193, 0.59344, 0.76302, 0.80870] val_Mpos_l=[1.00000, 0.40925, 0.55256, 0.59217, 0.76283, 0.81008] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=376 epoch=1.4688 running=2.761935 train_loss=2.762941 val_loss=2.762828 val_acc=0.186897 log_specnorm=202.304856
+[TRAIN] step=400/100000 epoch=1.5625 loss=2.745090 dt=122.77ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_423.pt
+[RHM] step=423 train_peeled_loss_l=[0.01233, 0.85661, 0.70199, 0.61811, 0.46107, 0.39583] val_peeled_loss_l=[0.01232, 0.85716, 0.70064, 0.61907, 0.46164, 0.39548]
+[RHM] step=423 train_Mpos_l=[1.00000, 0.49779, 0.55764, 0.60121, 0.76426, 0.81111] val_Mpos_l=[1.00000, 0.49769, 0.55871, 0.59967, 0.76498, 0.81216] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=423 epoch=1.6523 running=2.717159 train_loss=2.719620 val_loss=2.719978 val_acc=0.204462 log_specnorm=203.007448
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_475.pt
+[RHM] step=475 train_peeled_loss_l=[0.01634, 0.63478, 0.69905, 0.61624, 0.46193, 0.39655] val_peeled_loss_l=[0.01631, 0.63628, 0.69819, 0.61764, 0.46110, 0.39559]
+[RHM] step=475 train_Mpos_l=[0.99997, 0.68836, 0.56733, 0.60680, 0.76580, 0.81222] val_Mpos_l=[0.99996, 0.68792, 0.56758, 0.60530, 0.76562, 0.81429] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=475 epoch=1.8555 running=2.613399 train_loss=2.611634 val_loss=2.611550 val_acc=0.244737 log_specnorm=204.055480
+[TRAIN] step=500/100000 epoch=1.9531 loss=2.542798 dt=123.03ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_534.pt
+[RHM] step=534 train_peeled_loss_l=[0.01559, 0.29859, 0.68544, 0.60688, 0.45778, 0.39100] val_peeled_loss_l=[0.01553, 0.29907, 0.68428, 0.60738, 0.45723, 0.39131]
+[RHM] step=534 train_Mpos_l=[0.99990, 0.91364, 0.58401, 0.61940, 0.76906, 0.81822] val_Mpos_l=[0.99989, 0.91323, 0.58398, 0.61865, 0.76951, 0.81870] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=534 epoch=2.0859 running=2.430634 train_loss=2.430083 val_loss=2.429396 val_acc=0.292768 log_specnorm=205.938219
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_599.pt
+[RHM] step=599 train_peeled_loss_l=[0.00992, 0.09853, 0.67932, 0.59924, 0.45493, 0.38745] val_peeled_loss_l=[0.00993, 0.09893, 0.67846, 0.59968, 0.45436, 0.38790]
+[RHM] step=599 train_Mpos_l=[0.99996, 0.99114, 0.58332, 0.62045, 0.76909, 0.82049] val_Mpos_l=[0.99995, 0.99094, 0.58407, 0.62050, 0.77003, 0.82124] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=599 epoch=2.3398 running=2.305121 train_loss=2.304023 val_loss=2.304067 val_acc=0.312671 log_specnorm=208.213659
+[TRAIN] step=600/100000 epoch=2.3438 loss=2.297525 dt=144.46ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_673.pt
+[RHM] step=673 train_peeled_loss_l=[0.00635, 0.04445, 0.66720, 0.59528, 0.45180, 0.38699] val_peeled_loss_l=[0.00636, 0.04455, 0.66639, 0.59615, 0.45253, 0.38599]
+[RHM] step=673 train_Mpos_l=[1.00000, 0.99904, 0.58702, 0.62543, 0.77131, 0.82019] val_Mpos_l=[0.99999, 0.99897, 0.58742, 0.62514, 0.77150, 0.82184] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=673 epoch=2.6289 running=2.253287 train_loss=2.257273 val_loss=2.257490 val_acc=0.319172 log_specnorm=209.971445
+[TRAIN] step=700/100000 epoch=2.7344 loss=2.249511 dt=122.45ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_756.pt
+[RHM] step=756 train_peeled_loss_l=[0.00513, 0.02965, 0.66716, 0.59351, 0.45132, 0.38465] val_peeled_loss_l=[0.00513, 0.02959, 0.66721, 0.59410, 0.45112, 0.38507]
+[RHM] step=756 train_Mpos_l=[1.00000, 0.99954, 0.57963, 0.62657, 0.77005, 0.82255] val_Mpos_l=[1.00000, 0.99958, 0.58005, 0.62490, 0.77080, 0.82385] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=756 epoch=2.9531 running=2.241866 train_loss=2.241715 val_loss=2.241589 val_acc=0.319341 log_specnorm=211.266107
+[TRAIN] step=800/100000 epoch=3.1250 loss=2.235034 dt=123.17ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_850.pt
+[RHM] step=850 train_peeled_loss_l=[0.00449, 0.02102, 0.66327, 0.59067, 0.44899, 0.38292] val_peeled_loss_l=[0.00450, 0.02106, 0.66266, 0.59107, 0.44868, 0.38360]
+[RHM] step=850 train_Mpos_l=[1.00000, 0.99987, 0.58366, 0.62616, 0.77174, 0.82315] val_Mpos_l=[1.00000, 0.99986, 0.58523, 0.62489, 0.77304, 0.82341] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=850 epoch=3.3203 running=2.225564 train_loss=2.229986 val_loss=2.229683 val_acc=0.320241 log_specnorm=212.326461
+[TRAIN] step=900/100000 epoch=3.5156 loss=2.225557 dt=122.70ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_955.pt
+[RHM] step=955 train_peeled_loss_l=[0.00365, 0.01574, 0.66240, 0.58844, 0.44822, 0.38240] val_peeled_loss_l=[0.00365, 0.01575, 0.66110, 0.58912, 0.44875, 0.38319]
+[RHM] step=955 train_Mpos_l=[1.00000, 0.99993, 0.58308, 0.62657, 0.76988, 0.82287] val_Mpos_l=[1.00000, 0.99995, 0.58443, 0.62507, 0.77149, 0.82327] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=955 epoch=3.7305 running=2.224973 train_loss=2.223422 val_loss=2.223328 val_acc=0.322143 log_specnorm=213.289928
+[TRAIN] step=1000/100000 epoch=3.9062 loss=2.222842 dt=122.62ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1072.pt
+[RHM] step=1072 train_peeled_loss_l=[0.00341, 0.01308, 0.65849, 0.58797, 0.44778, 0.38209] val_peeled_loss_l=[0.00341, 0.01309, 0.65772, 0.58847, 0.44761, 0.38199]
+[RHM] step=1072 train_Mpos_l=[1.00000, 0.99995, 0.58583, 0.63005, 0.77158, 0.82442] val_Mpos_l=[1.00000, 0.99996, 0.58676, 0.62930, 0.77215, 0.82495] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1072 epoch=4.1875 running=2.219183 train_loss=2.218290 val_loss=2.217970 val_acc=0.322533 log_specnorm=214.215445
+[TRAIN] step=1100/100000 epoch=4.2969 loss=2.216611 dt=122.83ms
+[TRAIN] step=1200/100000 epoch=4.6875 loss=2.212413 dt=123.07ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1205.pt
+[RHM] step=1205 train_peeled_loss_l=[0.00312, 0.01053, 0.65426, 0.58638, 0.44597, 0.38105] val_peeled_loss_l=[0.00312, 0.01052, 0.65356, 0.58699, 0.44534, 0.38110]
+[RHM] step=1205 train_Mpos_l=[1.00000, 0.99998, 0.58975, 0.63116, 0.77292, 0.82248] val_Mpos_l=[1.00000, 0.99998, 0.59032, 0.62982, 0.77519, 0.82472] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1205 epoch=4.7070 running=2.214140 train_loss=2.213358 val_loss=2.213969 val_acc=0.324164 log_specnorm=215.095316
+[TRAIN] step=1300/100000 epoch=5.0781 loss=2.211188 dt=122.87ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1353.pt
+[RHM] step=1353 train_peeled_loss_l=[0.00298, 0.00932, 0.65061, 0.58364, 0.44398, 0.38000] val_peeled_loss_l=[0.00299, 0.00934, 0.65016, 0.58415, 0.44400, 0.38053]
+[RHM] step=1353 train_Mpos_l=[1.00000, 0.99993, 0.59352, 0.63180, 0.77422, 0.82509] val_Mpos_l=[1.00000, 0.99993, 0.59459, 0.63107, 0.77507, 0.82483] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1353 epoch=5.2852 running=2.210802 train_loss=2.211149 val_loss=2.210837 val_acc=0.324778 log_specnorm=215.953453
+[TRAIN] step=1400/100000 epoch=5.4688 loss=2.201617 dt=122.68ms
+[TRAIN] step=1500/100000 epoch=5.8594 loss=2.204752 dt=123.17ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1520.pt
+[RHM] step=1520 train_peeled_loss_l=[0.00287, 0.00900, 0.64070, 0.58517, 0.44480, 0.38016] val_peeled_loss_l=[0.00287, 0.00900, 0.63976, 0.58591, 0.44459, 0.38136]
+[RHM] step=1520 train_Mpos_l=[0.99999, 0.99992, 0.60702, 0.62979, 0.77396, 0.82347] val_Mpos_l=[1.00000, 0.99994, 0.60796, 0.62890, 0.77511, 0.82351] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1520 epoch=5.9375 running=2.204900 train_loss=2.205965 val_loss=2.205694 val_acc=0.327092 log_specnorm=216.938819
+[TRAIN] step=1600/100000 epoch=6.2500 loss=2.200053 dt=123.05ms
+[TRAIN] step=1700/100000 epoch=6.6406 loss=2.194052 dt=123.28ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1707.pt
+[RHM] step=1707 train_peeled_loss_l=[0.00280, 0.00816, 0.60196, 0.58602, 0.44567, 0.38084] val_peeled_loss_l=[0.00280, 0.00816, 0.60253, 0.58679, 0.44514, 0.38130]
+[RHM] step=1707 train_Mpos_l=[1.00000, 0.99984, 0.64105, 0.63173, 0.77303, 0.82492] val_Mpos_l=[0.99999, 0.99984, 0.64051, 0.63085, 0.77363, 0.82427] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1707 epoch=6.6680 running=2.191016 train_loss=2.192129 val_loss=2.191650 val_acc=0.329769 log_specnorm=218.112531
+[TRAIN] step=1800/100000 epoch=7.0312 loss=2.180399 dt=123.02ms
+[TRAIN] step=1900/100000 epoch=7.4219 loss=2.172034 dt=122.84ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_1918.pt
+[RHM] step=1918 train_peeled_loss_l=[0.00279, 0.00813, 0.53704, 0.58573, 0.44320, 0.37876] val_peeled_loss_l=[0.00282, 0.00807, 0.53787, 0.58621, 0.44298, 0.37977]
+[RHM] step=1918 train_Mpos_l=[0.99999, 0.99973, 0.69828, 0.63446, 0.77469, 0.82555] val_Mpos_l=[0.99998, 0.99978, 0.69816, 0.63247, 0.77559, 0.82616] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=1918 epoch=7.4922 running=2.165016 train_loss=2.165003 val_loss=2.164986 val_acc=0.337422 log_specnorm=219.689184
+[TRAIN] step=2000/100000 epoch=7.8125 loss=2.152919 dt=122.87ms
+[TRAIN] step=2100/100000 epoch=8.2031 loss=2.143678 dt=123.14ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_2154.pt
+[RHM] step=2154 train_peeled_loss_l=[0.00284, 0.00684, 0.46909, 0.58499, 0.44409, 0.38005] val_peeled_loss_l=[0.00284, 0.00686, 0.46991, 0.58637, 0.44362, 0.38067]
+[RHM] step=2154 train_Mpos_l=[0.99999, 0.99983, 0.75485, 0.63471, 0.77590, 0.82547] val_Mpos_l=[0.99998, 0.99983, 0.75397, 0.63336, 0.77727, 0.82654] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=2154 epoch=8.4141 running=2.137501 train_loss=2.138901 val_loss=2.138334 val_acc=0.342577 log_specnorm=221.522952
+[TRAIN] step=2200/100000 epoch=8.5938 loss=2.133210 dt=122.64ms
+[TRAIN] step=2300/100000 epoch=8.9844 loss=2.127701 dt=123.13ms
+[TRAIN] step=2400/100000 epoch=9.3750 loss=2.107420 dt=123.34ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_2420.pt
+[RHM] step=2420 train_peeled_loss_l=[0.00264, 0.00591, 0.39393, 0.58270, 0.44190, 0.37887] val_peeled_loss_l=[0.00265, 0.00580, 0.39419, 0.58493, 0.44214, 0.37986]
+[RHM] step=2420 train_Mpos_l=[0.99998, 0.99982, 0.81294, 0.63784, 0.77756, 0.82616] val_Mpos_l=[0.99998, 0.99989, 0.81275, 0.63630, 0.77779, 0.82646] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=2420 epoch=9.4531 running=2.107810 train_loss=2.105240 val_loss=2.105582 val_acc=0.349780 log_specnorm=223.415177
+[TRAIN] step=2500/100000 epoch=9.7656 loss=2.092335 dt=122.92ms
+[TRAIN] step=2600/100000 epoch=10.1562 loss=2.061500 dt=123.12ms
+[TRAIN] step=2700/100000 epoch=10.5469 loss=2.033751 dt=123.54ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_2719.pt
+[RHM] step=2719 train_peeled_loss_l=[0.00311, 0.00631, 0.21496, 0.58701, 0.44284, 0.38192] val_peeled_loss_l=[0.00312, 0.00631, 0.21508, 0.58792, 0.44341, 0.38139]
+[RHM] step=2719 train_Mpos_l=[0.99996, 0.99958, 0.92891, 0.64059, 0.77843, 0.82528] val_Mpos_l=[0.99995, 0.99960, 0.92909, 0.63926, 0.77952, 0.82701] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=2719 epoch=10.6211 running=2.031460 train_loss=2.030747 val_loss=2.031608 val_acc=0.366046 log_specnorm=225.641511
+[TRAIN] step=2800/100000 epoch=10.9375 loss=2.010744 dt=122.81ms
+[TRAIN] step=2900/100000 epoch=11.3281 loss=1.998853 dt=123.13ms
+[TRAIN] step=3000/100000 epoch=11.7188 loss=1.981054 dt=123.37ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3054.pt
+[RHM] step=3054 train_peeled_loss_l=[0.00341, 0.00442, 0.09878, 0.57332, 0.43447, 0.37579] val_peeled_loss_l=[0.00339, 0.00450, 0.09866, 0.57439, 0.43533, 0.37548]
+[RHM] step=3054 train_Mpos_l=[0.99988, 0.99985, 0.98028, 0.65110, 0.78370, 0.82940] val_Mpos_l=[0.99989, 0.99981, 0.98051, 0.65022, 0.78417, 0.83094] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3054 epoch=11.9297 running=1.982582 train_loss=1.975766 val_loss=1.976214 val_acc=0.377527 log_specnorm=227.787368
+[TRAIN] step=3100/100000 epoch=12.1094 loss=1.970828 dt=122.76ms
+[TRAIN] step=3200/100000 epoch=12.5000 loss=1.963260 dt=123.17ms
+[TRAIN] step=3300/100000 epoch=12.8906 loss=1.953979 dt=123.18ms
+[TRAIN] step=3400/100000 epoch=13.2812 loss=1.942674 dt=123.36ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3430.pt
+[RHM] step=3430 train_peeled_loss_l=[0.00239, 0.00370, 0.04921, 0.54791, 0.41940, 0.36503] val_peeled_loss_l=[0.00238, 0.00374, 0.04924, 0.54949, 0.41912, 0.36595]
+[RHM] step=3430 train_Mpos_l=[0.99998, 0.99996, 0.99395, 0.68104, 0.79470, 0.83650] val_Mpos_l=[0.99999, 0.99994, 0.99397, 0.67964, 0.79507, 0.83736] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3430 epoch=13.3984 running=1.939794 train_loss=1.939815 val_loss=1.939814 val_acc=0.383282 log_specnorm=229.455929
+[TRAIN] step=3500/100000 epoch=13.6719 loss=1.932984 dt=122.70ms
+[TRAIN] step=3600/100000 epoch=14.0625 loss=1.930798 dt=123.51ms
+[TRAIN] step=3700/100000 epoch=14.4531 loss=1.923130 dt=123.06ms
+[TRAIN] step=3800/100000 epoch=14.8438 loss=1.922786 dt=123.22ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3854.pt
+[RHM] step=3854 train_peeled_loss_l=[0.00209, 0.00315, 0.02615, 0.53331, 0.41049, 0.35927] val_peeled_loss_l=[0.00208, 0.00314, 0.02618, 0.53449, 0.41060, 0.35996]
+[RHM] step=3854 train_Mpos_l=[0.99999, 0.99995, 0.99896, 0.69762, 0.80056, 0.84289] val_Mpos_l=[0.99998, 0.99996, 0.99891, 0.69631, 0.80187, 0.84104] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3854 epoch=15.0547 running=1.919334 train_loss=1.921554 val_loss=1.921424 val_acc=0.385801 log_specnorm=230.898934
+[TRAIN] step=3900/100000 epoch=15.2344 loss=1.923792 dt=122.80ms
+[TRAIN] step=4000/100000 epoch=15.6250 loss=1.913419 dt=122.82ms
+[TRAIN] step=4100/100000 epoch=16.0156 loss=1.913886 dt=123.27ms
+[TRAIN] step=4200/100000 epoch=16.4062 loss=1.916699 dt=123.18ms
+[TRAIN] step=4300/100000 epoch=16.7969 loss=1.914773 dt=123.43ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_4329.pt
+[RHM] step=4329 train_peeled_loss_l=[0.00190, 0.00306, 0.01734, 0.53108, 0.40859, 0.35959] val_peeled_loss_l=[0.00190, 0.00304, 0.01738, 0.53148, 0.40832, 0.35911]
+[RHM] step=4329 train_Mpos_l=[0.99999, 0.99995, 0.99952, 0.70292, 0.80018, 0.84090] val_Mpos_l=[1.00000, 0.99997, 0.99955, 0.70251, 0.80188, 0.84317] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=4329 epoch=16.9102 running=1.908163 train_loss=1.913219 val_loss=1.913270 val_acc=0.386747 log_specnorm=232.238680
+[TRAIN] step=4400/100000 epoch=17.1875 loss=1.911192 dt=122.77ms
+[TRAIN] step=4500/100000 epoch=17.5781 loss=1.914309 dt=122.99ms
+[TRAIN] step=4600/100000 epoch=17.9688 loss=1.911774 dt=123.33ms
+[TRAIN] step=4700/100000 epoch=18.3594 loss=1.905682 dt=123.52ms
+[TRAIN] step=4800/100000 epoch=18.7500 loss=1.908092 dt=123.58ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_4863.pt
+[RHM] step=4863 train_peeled_loss_l=[0.00165, 0.00246, 0.01348, 0.52768, 0.40624, 0.35734] val_peeled_loss_l=[0.00166, 0.00247, 0.01351, 0.52859, 0.40625, 0.35676]
+[RHM] step=4863 train_Mpos_l=[0.99999, 0.99999, 0.99962, 0.70187, 0.80369, 0.84097] val_Mpos_l=[0.99999, 0.99999, 0.99960, 0.70105, 0.80469, 0.84247] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=4863 epoch=18.9961 running=1.908003 train_loss=1.908004 val_loss=1.908271 val_acc=0.386550 log_specnorm=233.541975
+[TRAIN] step=4900/100000 epoch=19.1406 loss=1.905936 dt=122.52ms
+[TRAIN] step=5000/100000 epoch=19.5312 loss=1.909026 dt=123.24ms
+[TRAIN] step=5100/100000 epoch=19.9219 loss=1.908832 dt=123.17ms
+[TRAIN] step=5200/100000 epoch=20.3125 loss=1.907718 dt=123.50ms
+[TRAIN] step=5300/100000 epoch=20.7031 loss=1.905550 dt=123.47ms
+[TRAIN] step=5400/100000 epoch=21.0938 loss=1.901531 dt=123.52ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_5462.pt
+[RHM] step=5462 train_peeled_loss_l=[0.00173, 0.00233, 0.01111, 0.52578, 0.40572, 0.35712] val_peeled_loss_l=[0.00174, 0.00233, 0.01123, 0.52650, 0.40517, 0.35657]
+[RHM] step=5462 train_Mpos_l=[0.99999, 0.99999, 0.99962, 0.70644, 0.80332, 0.84219] val_Mpos_l=[0.99999, 0.99999, 0.99961, 0.70561, 0.80514, 0.84459] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=5462 epoch=21.3359 running=1.904561 train_loss=1.906120 val_loss=1.906095 val_acc=0.387624 log_specnorm=234.937441
+[TRAIN] step=5500/100000 epoch=21.4844 loss=1.901859 dt=122.57ms
+[TRAIN] step=5600/100000 epoch=21.8750 loss=1.902944 dt=123.09ms
+[TRAIN] step=5700/100000 epoch=22.2656 loss=1.903995 dt=123.20ms
+[TRAIN] step=5800/100000 epoch=22.6562 loss=1.902108 dt=123.21ms
+[TRAIN] step=5900/100000 epoch=23.0469 loss=1.899856 dt=123.39ms
+[TRAIN] step=6000/100000 epoch=23.4375 loss=1.900518 dt=123.69ms
+[TRAIN] step=6100/100000 epoch=23.8281 loss=1.899365 dt=123.67ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_6136.pt
+[RHM] step=6136 train_peeled_loss_l=[0.00160, 0.00227, 0.00878, 0.51080, 0.40544, 0.35692] val_peeled_loss_l=[0.00161, 0.00227, 0.00881, 0.51152, 0.40531, 0.35591]
+[RHM] step=6136 train_Mpos_l=[1.00000, 0.99997, 0.99978, 0.72367, 0.80452, 0.84416] val_Mpos_l=[0.99999, 0.99999, 0.99976, 0.72377, 0.80539, 0.84536] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=6136 epoch=23.9688 running=1.898732 train_loss=1.899880 val_loss=1.900102 val_acc=0.389060 log_specnorm=236.655133
+[TRAIN] step=6200/100000 epoch=24.2188 loss=1.900025 dt=122.65ms
+[TRAIN] step=6300/100000 epoch=24.6094 loss=1.900056 dt=122.79ms
+[TRAIN] step=6400/100000 epoch=25.0000 loss=1.896747 dt=123.40ms
+[TRAIN] step=6500/100000 epoch=25.3906 loss=1.894190 dt=123.27ms
+[TRAIN] step=6600/100000 epoch=25.7812 loss=1.888283 dt=123.22ms
+[TRAIN] step=6700/100000 epoch=26.1719 loss=1.891012 dt=123.49ms
+[TRAIN] step=6800/100000 epoch=26.5625 loss=1.883699 dt=123.77ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_6893.pt
+[RHM] step=6893 train_peeled_loss_l=[0.00174, 0.00224, 0.00831, 0.44421, 0.40363, 0.35603] val_peeled_loss_l=[0.00175, 0.00227, 0.00831, 0.44505, 0.40294, 0.35530]
+[RHM] step=6893 train_Mpos_l=[0.99999, 0.99995, 0.99964, 0.78532, 0.80573, 0.84129] val_Mpos_l=[0.99998, 0.99994, 0.99961, 0.78478, 0.80707, 0.84351] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=6893 epoch=26.9258 running=1.885103 train_loss=1.883958 val_loss=1.883665 val_acc=0.394925 log_specnorm=238.984760
+[TRAIN] step=6900/100000 epoch=26.9531 loss=1.886047 dt=122.46ms
+[TRAIN] step=7000/100000 epoch=27.3438 loss=1.882020 dt=122.71ms
+[TRAIN] step=7100/100000 epoch=27.7344 loss=1.879314 dt=123.16ms
+[TRAIN] step=7200/100000 epoch=28.1250 loss=1.874055 dt=123.18ms
+[TRAIN] step=7300/100000 epoch=28.5156 loss=1.871258 dt=123.19ms
+[TRAIN] step=7400/100000 epoch=28.9062 loss=1.864593 dt=123.45ms
+[TRAIN] step=7500/100000 epoch=29.2969 loss=1.858415 dt=123.63ms
+[TRAIN] step=7600/100000 epoch=29.6875 loss=1.859266 dt=123.50ms
+[TRAIN] step=7700/100000 epoch=30.0781 loss=1.853936 dt=123.57ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_7743.pt
+[RHM] step=7743 train_peeled_loss_l=[0.00171, 0.00225, 0.00783, 0.29892, 0.39744, 0.35234] val_peeled_loss_l=[0.00169, 0.00223, 0.00773, 0.30147, 0.39643, 0.35087]
+[RHM] step=7743 train_Mpos_l=[0.99995, 0.99995, 0.99962, 0.89058, 0.81272, 0.84270] val_Mpos_l=[0.99998, 0.99996, 0.99966, 0.88878, 0.81412, 0.84509] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=7743 epoch=30.2461 running=1.843589 train_loss=1.847467 val_loss=1.847846 val_acc=0.404070 log_specnorm=241.579435
+[TRAIN] step=7800/100000 epoch=30.4688 loss=1.850096 dt=122.54ms
+[TRAIN] step=7900/100000 epoch=30.8594 loss=1.835794 dt=122.80ms
+[TRAIN] step=8000/100000 epoch=31.2500 loss=1.831251 dt=123.14ms
+[TRAIN] step=8100/100000 epoch=31.6406 loss=1.830338 dt=123.33ms
+[TRAIN] step=8200/100000 epoch=32.0312 loss=1.824432 dt=123.50ms
+[TRAIN] step=8300/100000 epoch=32.4219 loss=1.813365 dt=123.31ms
+[TRAIN] step=8400/100000 epoch=32.8125 loss=1.809067 dt=123.42ms
+[TRAIN] step=8500/100000 epoch=33.2031 loss=1.806189 dt=123.71ms
+[TRAIN] step=8600/100000 epoch=33.5938 loss=1.805213 dt=123.72ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_8697.pt
+[RHM] step=8697 train_peeled_loss_l=[0.00143, 0.00206, 0.00598, 0.14543, 0.38895, 0.34607] val_peeled_loss_l=[0.00141, 0.00206, 0.00591, 0.14754, 0.38755, 0.34596]
+[RHM] step=8697 train_Mpos_l=[0.99998, 0.99997, 0.99981, 0.96214, 0.82080, 0.84985] val_Mpos_l=[0.99999, 0.99998, 0.99982, 0.96095, 0.82303, 0.84832] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=8697 epoch=33.9727 running=1.802235 train_loss=1.801397 val_loss=1.800990 val_acc=0.412231 log_specnorm=244.005001
+[TRAIN] step=8700/100000 epoch=33.9844 loss=1.796898 dt=123.49ms
+[TRAIN] step=8800/100000 epoch=34.3750 loss=1.803072 dt=122.86ms
+[TRAIN] step=8900/100000 epoch=34.7656 loss=1.795501 dt=123.06ms
+[TRAIN] step=9000/100000 epoch=35.1562 loss=1.790793 dt=123.09ms
+[TRAIN] step=9100/100000 epoch=35.5469 loss=1.787255 dt=123.31ms
+[TRAIN] step=9200/100000 epoch=35.9375 loss=1.785345 dt=123.34ms
+[TRAIN] step=9300/100000 epoch=36.3281 loss=1.781873 dt=123.35ms
+[TRAIN] step=9400/100000 epoch=36.7188 loss=1.783881 dt=123.45ms
+[TRAIN] step=9500/100000 epoch=37.1094 loss=1.777692 dt=123.58ms
+[TRAIN] step=9600/100000 epoch=37.5000 loss=1.772391 dt=123.51ms
+[TRAIN] step=9700/100000 epoch=37.8906 loss=1.773212 dt=123.54ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_9770.pt
+[RHM] step=9770 train_peeled_loss_l=[0.00132, 0.00199, 0.00493, 0.06371, 0.37492, 0.33729] val_peeled_loss_l=[0.00133, 0.00198, 0.00501, 0.06467, 0.37492, 0.33819]
+[RHM] step=9770 train_Mpos_l=[0.99999, 0.99996, 0.99989, 0.98915, 0.83061, 0.85326] val_Mpos_l=[0.99998, 0.99996, 0.99984, 0.98865, 0.83227, 0.85347] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=9770 epoch=38.1641 running=1.771979 train_loss=1.771964 val_loss=1.772129 val_acc=0.418292 log_specnorm=245.965446
+[TRAIN] step=9800/100000 epoch=38.2812 loss=1.769349 dt=122.51ms
+[TRAIN] step=9900/100000 epoch=38.6719 loss=1.771024 dt=122.79ms
+[TRAIN] step=10000/100000 epoch=39.0625 loss=1.770491 dt=123.04ms
+[TRAIN] step=10100/100000 epoch=39.4531 loss=1.767828 dt=123.16ms
+[TRAIN] step=10200/100000 epoch=39.8438 loss=1.767112 dt=123.20ms
+[TRAIN] step=10300/100000 epoch=40.2344 loss=1.762726 dt=123.35ms
+[TRAIN] step=10400/100000 epoch=40.6250 loss=1.762551 dt=123.33ms
+[TRAIN] step=10500/100000 epoch=41.0156 loss=1.761873 dt=123.39ms
+[TRAIN] step=10600/100000 epoch=41.4062 loss=1.762243 dt=123.76ms
+[TRAIN] step=10700/100000 epoch=41.7969 loss=1.757785 dt=123.54ms
+[TRAIN] step=10800/100000 epoch=42.1875 loss=1.758290 dt=123.78ms
+[TRAIN] step=10900/100000 epoch=42.5781 loss=1.755289 dt=123.66ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_10975.pt
+[RHM] step=10975 train_peeled_loss_l=[0.00114, 0.00156, 0.00338, 0.03225, 0.36658, 0.33235] val_peeled_loss_l=[0.00113, 0.00156, 0.00337, 0.03319, 0.36679, 0.33257]
+[RHM] step=10975 train_Mpos_l=[0.99999, 0.99998, 0.99992, 0.99655, 0.83537, 0.85613] val_Mpos_l=[1.00000, 0.99997, 0.99992, 0.99617, 0.83552, 0.85666] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=10975 epoch=42.8711 running=1.756397 train_loss=1.757679 val_loss=1.757952 val_acc=0.419410 log_specnorm=247.735344
+[TRAIN] step=11000/100000 epoch=42.9688 loss=1.759518 dt=122.43ms
+[TRAIN] step=11100/100000 epoch=43.3594 loss=1.760108 dt=122.89ms
+[TRAIN] step=11200/100000 epoch=43.7500 loss=1.757326 dt=122.84ms
+[TRAIN] step=11300/100000 epoch=44.1406 loss=1.756925 dt=123.37ms
+[TRAIN] step=11400/100000 epoch=44.5312 loss=1.757273 dt=123.23ms
+[TRAIN] step=11500/100000 epoch=44.9219 loss=1.754310 dt=123.66ms
+[TRAIN] step=11600/100000 epoch=45.3125 loss=1.755933 dt=123.54ms
+[TRAIN] step=11700/100000 epoch=45.7031 loss=1.755219 dt=123.51ms
+[TRAIN] step=11800/100000 epoch=46.0938 loss=1.753797 dt=123.52ms
+[TRAIN] step=11900/100000 epoch=46.4844 loss=1.753606 dt=123.75ms
+[TRAIN] step=12000/100000 epoch=46.8750 loss=1.754369 dt=123.71ms
+[TRAIN] step=12100/100000 epoch=47.2656 loss=1.754404 dt=123.72ms
+[TRAIN] step=12200/100000 epoch=47.6562 loss=1.750216 dt=123.62ms
+[TRAIN] step=12300/100000 epoch=48.0469 loss=1.751018 dt=123.62ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_12328.pt
+[RHM] step=12328 train_peeled_loss_l=[0.00117, 0.00161, 0.00340, 0.02429, 0.36456, 0.33066] val_peeled_loss_l=[0.00118, 0.00160, 0.00340, 0.02528, 0.36395, 0.33057]
+[RHM] step=12328 train_Mpos_l=[0.99998, 0.99998, 0.99996, 0.99755, 0.83790, 0.85956] val_Mpos_l=[0.99998, 0.99998, 0.99997, 0.99724, 0.83870, 0.86039] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=12328 epoch=48.1562 running=1.753068 train_loss=1.752295 val_loss=1.752508 val_acc=0.421071 log_specnorm=249.469655
+[TRAIN] step=12400/100000 epoch=48.4375 loss=1.751218 dt=122.85ms
+[TRAIN] step=12500/100000 epoch=48.8281 loss=1.754517 dt=122.92ms
+[TRAIN] step=12600/100000 epoch=49.2188 loss=1.751203 dt=123.00ms
+[TRAIN] step=12700/100000 epoch=49.6094 loss=1.749180 dt=123.09ms
+[TRAIN] step=12800/100000 epoch=50.0000 loss=1.749812 dt=123.52ms
+[TRAIN] step=12900/100000 epoch=50.3906 loss=1.751440 dt=123.51ms
+[TRAIN] step=13000/100000 epoch=50.7812 loss=1.746017 dt=123.75ms
+[TRAIN] step=13100/100000 epoch=51.1719 loss=1.749824 dt=123.69ms
+[TRAIN] step=13200/100000 epoch=51.5625 loss=1.750723 dt=123.71ms
+[TRAIN] step=13300/100000 epoch=51.9531 loss=1.749727 dt=123.61ms
+[TRAIN] step=13400/100000 epoch=52.3438 loss=1.751031 dt=123.62ms
+[TRAIN] step=13500/100000 epoch=52.7344 loss=1.746083 dt=123.80ms
+[TRAIN] step=13600/100000 epoch=53.1250 loss=1.746727 dt=123.69ms
+[TRAIN] step=13700/100000 epoch=53.5156 loss=1.749150 dt=123.57ms
+[TRAIN] step=13800/100000 epoch=53.9062 loss=1.747929 dt=123.91ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_13849.pt
+[RHM] step=13849 train_peeled_loss_l=[0.00089, 0.00133, 0.00271, 0.02003, 0.36039, 0.32874] val_peeled_loss_l=[0.00088, 0.00133, 0.00271, 0.02066, 0.36022, 0.32957]
+[RHM] step=13849 train_Mpos_l=[0.99999, 0.99999, 0.99996, 0.99801, 0.84027, 0.85926] val_Mpos_l=[1.00000, 0.99999, 0.99996, 0.99778, 0.84134, 0.85873] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=13849 epoch=54.0977 running=1.747028 train_loss=1.748276 val_loss=1.748499 val_acc=0.421258 log_specnorm=251.257087
+[TRAIN] step=13900/100000 epoch=54.2969 loss=1.748938 dt=123.29ms
+[TRAIN] step=14000/100000 epoch=54.6875 loss=1.746735 dt=122.79ms
+[TRAIN] step=14100/100000 epoch=55.0781 loss=1.745768 dt=123.26ms
+[TRAIN] step=14200/100000 epoch=55.4688 loss=1.750470 dt=123.31ms
+[TRAIN] step=14300/100000 epoch=55.8594 loss=1.748054 dt=123.47ms
+[TRAIN] step=14400/100000 epoch=56.2500 loss=1.746020 dt=123.54ms
+[TRAIN] step=14500/100000 epoch=56.6406 loss=1.748231 dt=123.63ms
+[TRAIN] step=14600/100000 epoch=57.0312 loss=1.748611 dt=123.51ms
+[TRAIN] step=14700/100000 epoch=57.4219 loss=1.744848 dt=123.66ms
+[TRAIN] step=14800/100000 epoch=57.8125 loss=1.748178 dt=123.63ms
+[TRAIN] step=14900/100000 epoch=58.2031 loss=1.749009 dt=123.66ms
+[TRAIN] step=15000/100000 epoch=58.5938 loss=1.745232 dt=123.67ms
+[TRAIN] step=15100/100000 epoch=58.9844 loss=1.746709 dt=123.63ms
+[TRAIN] step=15200/100000 epoch=59.3750 loss=1.747504 dt=123.53ms
+[TRAIN] step=15300/100000 epoch=59.7656 loss=1.743483 dt=123.55ms
+[TRAIN] step=15400/100000 epoch=60.1562 loss=1.746723 dt=123.65ms
+[TRAIN] step=15500/100000 epoch=60.5469 loss=1.744244 dt=123.59ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_15557.pt
+[RHM] step=15557 train_peeled_loss_l=[0.00086, 0.00129, 0.00248, 0.01613, 0.35810, 0.32749] val_peeled_loss_l=[0.00084, 0.00129, 0.00249, 0.01649, 0.35889, 0.32825]
+[RHM] step=15557 train_Mpos_l=[0.99999, 0.99999, 0.99998, 0.99817, 0.84183, 0.86058] val_Mpos_l=[1.00000, 0.99998, 0.99999, 0.99802, 0.84148, 0.85938] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=15557 epoch=60.7695 running=1.747632 train_loss=1.745801 val_loss=1.745953 val_acc=0.422079 log_specnorm=253.139745
+[TRAIN] step=15600/100000 epoch=60.9375 loss=1.747219 dt=122.61ms
+[TRAIN] step=15700/100000 epoch=61.3281 loss=1.746338 dt=122.80ms
+[TRAIN] step=15800/100000 epoch=61.7188 loss=1.746906 dt=123.13ms
+[TRAIN] step=15900/100000 epoch=62.1094 loss=1.747590 dt=123.21ms
+[TRAIN] step=16000/100000 epoch=62.5000 loss=1.744294 dt=123.12ms
+[TRAIN] step=16100/100000 epoch=62.8906 loss=1.743842 dt=123.28ms
+[TRAIN] step=16200/100000 epoch=63.2812 loss=1.744496 dt=123.62ms
+[TRAIN] step=16300/100000 epoch=63.6719 loss=1.742718 dt=123.67ms
+[TRAIN] step=16400/100000 epoch=64.0625 loss=1.742502 dt=123.61ms
+[TRAIN] step=16500/100000 epoch=64.4531 loss=1.745202 dt=123.62ms
+[TRAIN] step=16600/100000 epoch=64.8438 loss=1.741200 dt=123.69ms
+[TRAIN] step=16700/100000 epoch=65.2344 loss=1.742196 dt=123.78ms
+[TRAIN] step=16800/100000 epoch=65.6250 loss=1.747969 dt=123.64ms
+[TRAIN] step=16900/100000 epoch=66.0156 loss=1.743924 dt=123.59ms
+[TRAIN] step=17000/100000 epoch=66.4062 loss=1.744715 dt=123.67ms
+[TRAIN] step=17100/100000 epoch=66.7969 loss=1.743085 dt=123.53ms
+[TRAIN] step=17200/100000 epoch=67.1875 loss=1.742097 dt=123.61ms
+[TRAIN] step=17300/100000 epoch=67.5781 loss=1.742125 dt=123.61ms
+[TRAIN] step=17400/100000 epoch=67.9688 loss=1.745290 dt=123.65ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_17475.pt
+[RHM] step=17475 train_peeled_loss_l=[0.00081, 0.00121, 0.00234, 0.01547, 0.35480, 0.32614] val_peeled_loss_l=[0.00080, 0.00122, 0.00240, 0.01543, 0.35517, 0.32681]
+[RHM] step=17475 train_Mpos_l=[1.00000, 0.99998, 0.99994, 0.99806, 0.84501, 0.86245] val_Mpos_l=[1.00000, 0.99998, 0.99993, 0.99785, 0.84589, 0.86150] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=17475 epoch=68.2617 running=1.740806 train_loss=1.742993 val_loss=1.743705 val_acc=0.421762 log_specnorm=255.130035
+[TRAIN] step=17500/100000 epoch=68.3594 loss=1.741476 dt=122.91ms
+[TRAIN] step=17600/100000 epoch=68.7500 loss=1.744835 dt=122.67ms
+[TRAIN] step=17700/100000 epoch=69.1406 loss=1.742938 dt=123.15ms
+[TRAIN] step=17800/100000 epoch=69.5312 loss=1.742892 dt=123.23ms
+[TRAIN] step=17900/100000 epoch=69.9219 loss=1.742375 dt=123.20ms
+[TRAIN] step=18000/100000 epoch=70.3125 loss=1.740445 dt=123.71ms
+[TRAIN] step=18100/100000 epoch=70.7031 loss=1.741201 dt=123.52ms
+[TRAIN] step=18200/100000 epoch=71.0938 loss=1.741618 dt=123.65ms
+[TRAIN] step=18300/100000 epoch=71.4844 loss=1.741883 dt=123.64ms
+[TRAIN] step=18400/100000 epoch=71.8750 loss=1.738370 dt=123.69ms
+[TRAIN] step=18500/100000 epoch=72.2656 loss=1.738049 dt=123.61ms
+[TRAIN] step=18600/100000 epoch=72.6562 loss=1.741842 dt=123.61ms
+[TRAIN] step=18700/100000 epoch=73.0469 loss=1.742694 dt=123.52ms
+[TRAIN] step=18800/100000 epoch=73.4375 loss=1.744110 dt=123.70ms
+[TRAIN] step=18900/100000 epoch=73.8281 loss=1.741102 dt=123.57ms
+[TRAIN] step=19000/100000 epoch=74.2188 loss=1.741080 dt=123.51ms
+[TRAIN] step=19100/100000 epoch=74.6094 loss=1.737968 dt=123.60ms
+[TRAIN] step=19200/100000 epoch=75.0000 loss=1.739844 dt=123.50ms
+[TRAIN] step=19300/100000 epoch=75.3906 loss=1.740284 dt=123.47ms
+[TRAIN] step=19400/100000 epoch=75.7812 loss=1.740429 dt=123.39ms
+[TRAIN] step=19500/100000 epoch=76.1719 loss=1.741815 dt=123.65ms
+[TRAIN] step=19600/100000 epoch=76.5625 loss=1.739087 dt=123.68ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_19630.pt
+[RHM] step=19630 train_peeled_loss_l=[0.00078, 0.00110, 0.00205, 0.01287, 0.33785, 0.32515] val_peeled_loss_l=[0.00078, 0.00109, 0.00204, 0.01320, 0.33779, 0.32614]
+[RHM] step=19630 train_Mpos_l=[0.99999, 0.99999, 0.99997, 0.99833, 0.85590, 0.86313] val_Mpos_l=[1.00000, 0.99999, 0.99997, 0.99814, 0.85551, 0.86269] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=19630 epoch=76.6797 running=1.738687 train_loss=1.738853 val_loss=1.739396 val_acc=0.423374 log_specnorm=257.260843
+[TRAIN] step=19700/100000 epoch=76.9531 loss=1.735614 dt=122.65ms
+[TRAIN] step=19800/100000 epoch=77.3438 loss=1.737310 dt=122.67ms
+[TRAIN] step=19900/100000 epoch=77.7344 loss=1.736738 dt=123.12ms
+[TRAIN] step=20000/100000 epoch=78.1250 loss=1.742868 dt=123.15ms
+[TRAIN] step=20100/100000 epoch=78.5156 loss=1.741396 dt=123.24ms
+[TRAIN] step=20200/100000 epoch=78.9062 loss=1.735915 dt=123.59ms
+[TRAIN] step=20300/100000 epoch=79.2969 loss=1.735480 dt=123.65ms
+[TRAIN] step=20400/100000 epoch=79.6875 loss=1.735134 dt=123.72ms
+[TRAIN] step=20500/100000 epoch=80.0781 loss=1.736544 dt=123.64ms
+[TRAIN] step=20600/100000 epoch=80.4688 loss=1.733683 dt=123.71ms
+[TRAIN] step=20700/100000 epoch=80.8594 loss=1.736262 dt=123.57ms
+[TRAIN] step=20800/100000 epoch=81.2500 loss=1.733022 dt=123.69ms
+[TRAIN] step=20900/100000 epoch=81.6406 loss=1.736660 dt=123.82ms
+[TRAIN] step=21000/100000 epoch=82.0312 loss=1.733469 dt=123.71ms
+[TRAIN] step=21100/100000 epoch=82.4219 loss=1.736214 dt=123.69ms
+[TRAIN] step=21200/100000 epoch=82.8125 loss=1.733341 dt=123.60ms
+[TRAIN] step=21300/100000 epoch=83.2031 loss=1.734354 dt=123.66ms
+[TRAIN] step=21400/100000 epoch=83.5938 loss=1.732740 dt=123.62ms
+[TRAIN] step=21500/100000 epoch=83.9844 loss=1.733464 dt=123.67ms
+[TRAIN] step=21600/100000 epoch=84.3750 loss=1.732809 dt=123.89ms
+[TRAIN] step=21700/100000 epoch=84.7656 loss=1.733371 dt=123.63ms
+[TRAIN] step=21800/100000 epoch=85.1562 loss=1.732852 dt=123.80ms
+[TRAIN] step=21900/100000 epoch=85.5469 loss=1.729955 dt=123.74ms
+[TRAIN] step=22000/100000 epoch=85.9375 loss=1.733114 dt=123.27ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_22051.pt
+[RHM] step=22051 train_peeled_loss_l=[0.00071, 0.00103, 0.00189, 0.01151, 0.29776, 0.32262] val_peeled_loss_l=[0.00072, 0.00105, 0.00187, 0.01174, 0.29780, 0.32261]
+[RHM] step=22051 train_Mpos_l=[0.99999, 1.00000, 0.99999, 0.99839, 0.88140, 0.86275] val_Mpos_l=[0.99999, 0.99998, 1.00000, 0.99825, 0.88193, 0.86282] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=22051 epoch=86.1367 running=1.729820 train_loss=1.729966 val_loss=1.730285 val_acc=0.425799 log_specnorm=259.337593
+[TRAIN] step=22100/100000 epoch=86.3281 loss=1.730005 dt=122.79ms
+[TRAIN] step=22200/100000 epoch=86.7188 loss=1.729800 dt=122.86ms
+[TRAIN] step=22300/100000 epoch=87.1094 loss=1.727622 dt=123.10ms
+[TRAIN] step=22400/100000 epoch=87.5000 loss=1.727859 dt=123.48ms
+[TRAIN] step=22500/100000 epoch=87.8906 loss=1.730888 dt=123.42ms
+[TRAIN] step=22600/100000 epoch=88.2812 loss=1.726589 dt=123.36ms
+[TRAIN] step=22700/100000 epoch=88.6719 loss=1.726969 dt=123.50ms
+[TRAIN] step=22800/100000 epoch=89.0625 loss=1.728390 dt=123.68ms
+[TRAIN] step=22900/100000 epoch=89.4531 loss=1.728231 dt=123.66ms
+[TRAIN] step=23000/100000 epoch=89.8438 loss=1.724246 dt=123.72ms
+[TRAIN] step=23100/100000 epoch=90.2344 loss=1.725249 dt=123.65ms
+[TRAIN] step=23200/100000 epoch=90.6250 loss=1.726006 dt=123.69ms
+[TRAIN] step=23300/100000 epoch=91.0156 loss=1.724916 dt=123.56ms
+[TRAIN] step=23400/100000 epoch=91.4062 loss=1.723002 dt=123.62ms
+[TRAIN] step=23500/100000 epoch=91.7969 loss=1.723829 dt=123.48ms
+[TRAIN] step=23600/100000 epoch=92.1875 loss=1.719715 dt=123.66ms
+[TRAIN] step=23700/100000 epoch=92.5781 loss=1.723650 dt=123.62ms
+[TRAIN] step=23800/100000 epoch=92.9688 loss=1.721836 dt=123.47ms
+[TRAIN] step=23900/100000 epoch=93.3594 loss=1.721161 dt=123.63ms
+[TRAIN] step=24000/100000 epoch=93.7500 loss=1.718125 dt=123.57ms
+[TRAIN] step=24100/100000 epoch=94.1406 loss=1.719489 dt=123.62ms
+[TRAIN] step=24200/100000 epoch=94.5312 loss=1.718868 dt=123.64ms
+[TRAIN] step=24300/100000 epoch=94.9219 loss=1.712887 dt=123.69ms
+[TRAIN] step=24400/100000 epoch=95.3125 loss=1.714017 dt=123.58ms
+[TRAIN] step=24500/100000 epoch=95.7031 loss=1.716097 dt=123.67ms
+[TRAIN] step=24600/100000 epoch=96.0938 loss=1.710809 dt=123.63ms
+[TRAIN] step=24700/100000 epoch=96.4844 loss=1.714756 dt=123.70ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_24771.pt
+[RHM] step=24771 train_peeled_loss_l=[0.00068, 0.00099, 0.00188, 0.01100, 0.20982, 0.31569] val_peeled_loss_l=[0.00069, 0.00100, 0.00192, 0.01114, 0.21041, 0.31696]
+[RHM] step=24771 train_Mpos_l=[1.00000, 0.99999, 0.99997, 0.99833, 0.92816, 0.86852] val_Mpos_l=[0.99999, 0.99999, 0.99995, 0.99812, 0.92761, 0.86768] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=24771 epoch=96.7617 running=1.716854 train_loss=1.713587 val_loss=1.713794 val_acc=0.429559 log_specnorm=261.389176
+[TRAIN] step=24800/100000 epoch=96.8750 loss=1.711951 dt=122.25ms
+[TRAIN] step=24900/100000 epoch=97.2656 loss=1.711905 dt=122.84ms
+[TRAIN] step=25000/100000 epoch=97.6562 loss=1.714398 dt=123.00ms
+[TRAIN] step=25100/100000 epoch=98.0469 loss=1.711337 dt=123.45ms
+[TRAIN] step=25200/100000 epoch=98.4375 loss=1.712906 dt=123.30ms
+[TRAIN] step=25300/100000 epoch=98.8281 loss=1.708632 dt=123.30ms
+[TRAIN] step=25400/100000 epoch=99.2188 loss=1.707261 dt=123.56ms
+[TRAIN] step=25500/100000 epoch=99.6094 loss=1.706655 dt=123.62ms
+[TRAIN] step=25600/100000 epoch=100.0000 loss=1.705893 dt=123.69ms
+[TRAIN] step=25700/100000 epoch=100.3906 loss=1.704059 dt=123.61ms
+[TRAIN] step=25800/100000 epoch=100.7812 loss=1.709526 dt=123.71ms
+[TRAIN] step=25900/100000 epoch=101.1719 loss=1.705091 dt=123.58ms
+[TRAIN] step=26000/100000 epoch=101.5625 loss=1.701405 dt=123.72ms
+[TRAIN] step=26100/100000 epoch=101.9531 loss=1.703609 dt=123.67ms
+[TRAIN] step=26200/100000 epoch=102.3438 loss=1.701247 dt=123.66ms
+[TRAIN] step=26300/100000 epoch=102.7344 loss=1.701066 dt=123.60ms
+[TRAIN] step=26400/100000 epoch=103.1250 loss=1.698609 dt=123.58ms
+[TRAIN] step=26500/100000 epoch=103.5156 loss=1.701775 dt=123.42ms
+[TRAIN] step=26600/100000 epoch=103.9062 loss=1.697948 dt=123.54ms
+[TRAIN] step=26700/100000 epoch=104.2969 loss=1.701879 dt=123.38ms
+[TRAIN] step=26800/100000 epoch=104.6875 loss=1.696021 dt=123.57ms
+[TRAIN] step=26900/100000 epoch=105.0781 loss=1.695422 dt=123.60ms
+[TRAIN] step=27000/100000 epoch=105.4688 loss=1.691873 dt=123.58ms
+[TRAIN] step=27100/100000 epoch=105.8594 loss=1.693704 dt=123.55ms
+[TRAIN] step=27200/100000 epoch=106.2500 loss=1.692161 dt=123.50ms
+[TRAIN] step=27300/100000 epoch=106.6406 loss=1.696715 dt=123.50ms
+[TRAIN] step=27400/100000 epoch=107.0312 loss=1.691652 dt=123.87ms
+[TRAIN] step=27500/100000 epoch=107.4219 loss=1.690180 dt=123.66ms
+[TRAIN] step=27600/100000 epoch=107.8125 loss=1.690966 dt=123.66ms
+[TRAIN] step=27700/100000 epoch=108.2031 loss=1.691223 dt=123.52ms
+[TRAIN] step=27800/100000 epoch=108.5938 loss=1.694365 dt=123.65ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_uniform_L6_v1/rhm_gpt2_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_27826.pt

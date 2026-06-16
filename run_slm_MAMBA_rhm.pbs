@@ -34,17 +34,17 @@ BLOCK_SIZE="${BLOCK_SIZE:-}"
 # RHM parameters
 ######################################################
 
-NUM_FEATURES="${NUM_FEATURES:-64}"     # v: vocabulary size
-NUM_CLASSES="${NUM_CLASSES:-64}"       # n: number of root classes; here n=v
-NUM_SYNONYMS="${NUM_SYNONYMS:-5}"      # m: number of rules/synonyms per symbol
-TUPLE_SIZE="${TUPLE_SIZE:-2}"          # s: branching factor
-NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM hierarchy depth L; d=s^L=64
+# NUM_FEATURES="${NUM_FEATURES:-64}"     # v: vocabulary size
+# NUM_CLASSES="${NUM_CLASSES:-64}"       # n: number of root classes; here n=v
+# NUM_SYNONYMS="${NUM_SYNONYMS:-5}"      # m: number of rules/synonyms per symbol
+# TUPLE_SIZE="${TUPLE_SIZE:-2}"          # s: branching factor
+# NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM hierarchy depth L; d=s^L=64
 
-# NUM_FEATURES="${NUM_FEATURES:-8}"
-# NUM_CLASSES="${NUM_CLASSES:-8}"
-# NUM_SYNONYMS="${NUM_SYNONYMS:-5}"
-# TUPLE_SIZE="${TUPLE_SIZE:-3}"
-# NUM_LAYERS="${NUM_LAYERS:-5}"
+NUM_FEATURES="${NUM_FEATURES:-8}"
+NUM_CLASSES="${NUM_CLASSES:-8}"
+NUM_SYNONYMS="${NUM_SYNONYMS:-5}"
+TUPLE_SIZE="${TUPLE_SIZE:-3}"
+NUM_LAYERS="${NUM_LAYERS:-5}"
 #
 # NUM_FEATURES="${NUM_FEATURES:-8}"
 # NUM_CLASSES="${NUM_CLASSES:-8}"
@@ -59,7 +59,7 @@ NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM hierarchy depth L; d=s^L=64
 # NUM_LAYERS="${NUM_LAYERS:-3}"
 
 
-DEPTH="${DEPTH:-12}"                   # Number of Mamba residual blocks
+DEPTH="${DEPTH:-10}"                   # Number of Mamba residual blocks
 
 ######################################################
 # Mamba architecture
