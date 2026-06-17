@@ -357,3 +357,191 @@ Training for 100000 optimizer steps
 [TRAIN] step=2600/100000 epoch=2.5391 loss=1.939271 dt=943.84ms
 [TRAIN] step=2700/100000 epoch=2.6367 loss=1.942841 dt=943.79ms
 [CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_2719.pt
+[RHM] step=2719 train_peeled_loss_l=[0.00410, 0.00769, 0.02900, 0.53851, 0.42137, 0.36841] val_peeled_loss_l=[0.00406, 0.00777, 0.02900, 0.53892, 0.42095, 0.36857]
+[RHM] step=2719 train_Mpos_l=[0.99959, 0.99946, 0.99832, 0.69468, 0.79225, 0.83416] val_Mpos_l=[0.99958, 0.99952, 0.99832, 0.69518, 0.79394, 0.83521] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=2719 epoch=2.6553 running=1.930906 train_loss=1.939102 val_loss=1.938798 val_acc=0.381539 log_specnorm=153.118042
+[TRAIN] step=2800/100000 epoch=2.7344 loss=1.945022 dt=943.91ms
+[TRAIN] step=2900/100000 epoch=2.8320 loss=1.941243 dt=944.17ms
+[TRAIN] step=3000/100000 epoch=2.9297 loss=1.930482 dt=943.84ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3054.pt
+[RHM] step=3054 train_peeled_loss_l=[0.00309, 0.00685, 0.02497, 0.53297, 0.41835, 0.36772] val_peeled_loss_l=[0.00305, 0.00686, 0.02497, 0.53353, 0.41808, 0.36818]
+[RHM] step=3054 train_Mpos_l=[0.99986, 0.99970, 0.99897, 0.70293, 0.79429, 0.83694] val_Mpos_l=[0.99987, 0.99969, 0.99898, 0.70193, 0.79580, 0.83591] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3054 epoch=2.9824 running=1.937958 train_loss=1.933242 val_loss=1.932979 val_acc=0.382033 log_specnorm=155.160854
+[TRAIN] step=3100/100000 epoch=3.0273 loss=1.927977 dt=943.72ms
+[TRAIN] step=3200/100000 epoch=3.1250 loss=1.938151 dt=943.85ms
+[TRAIN] step=3300/100000 epoch=3.2227 loss=1.919031 dt=943.77ms
+[TRAIN] step=3400/100000 epoch=3.3203 loss=1.921932 dt=944.17ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3430.pt
+[RHM] step=3430 train_peeled_loss_l=[0.00281, 0.00612, 0.02150, 0.52478, 0.42153, 0.36817] val_peeled_loss_l=[0.00285, 0.00606, 0.02142, 0.52590, 0.42035, 0.36796]
+[RHM] step=3430 train_Mpos_l=[0.99990, 0.99987, 0.99917, 0.70636, 0.79229, 0.83401] val_Mpos_l=[0.99990, 0.99987, 0.99931, 0.70491, 0.79376, 0.83540] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3430 epoch=3.3496 running=1.931771 train_loss=1.926559 val_loss=1.926413 val_acc=0.382509 log_specnorm=156.528324
+[TRAIN] step=3500/100000 epoch=3.4180 loss=1.932601 dt=943.90ms
+[TRAIN] step=3600/100000 epoch=3.5156 loss=1.927042 dt=943.85ms
+[TRAIN] step=3700/100000 epoch=3.6133 loss=1.922159 dt=943.74ms
+[TRAIN] step=3800/100000 epoch=3.7109 loss=1.918786 dt=944.28ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_3854.pt
+[RHM] step=3854 train_peeled_loss_l=[0.00303, 0.00603, 0.02092, 0.51675, 0.41927, 0.36742] val_peeled_loss_l=[0.00302, 0.00601, 0.02093, 0.51815, 0.41845, 0.36759]
+[RHM] step=3854 train_Mpos_l=[0.99987, 0.99971, 0.99858, 0.71882, 0.79440, 0.83391] val_Mpos_l=[0.99988, 0.99973, 0.99859, 0.71712, 0.79548, 0.83390] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=3854 epoch=3.7637 running=1.923161 train_loss=1.924894 val_loss=1.924774 val_acc=0.384236 log_specnorm=158.791044
+[TRAIN] step=3900/100000 epoch=3.8086 loss=1.921829 dt=944.25ms
+[TRAIN] step=4000/100000 epoch=3.9062 loss=1.920344 dt=943.79ms
+[TRAIN] step=4100/100000 epoch=4.0039 loss=1.914255 dt=943.85ms
+[TRAIN] step=4200/100000 epoch=4.1016 loss=1.915877 dt=943.66ms
+[TRAIN] step=4300/100000 epoch=4.1992 loss=1.916581 dt=943.77ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_4329.pt
+[RHM] step=4329 train_peeled_loss_l=[0.00247, 0.00627, 0.01838, 0.49246, 0.42005, 0.36788] val_peeled_loss_l=[0.00243, 0.00613, 0.01813, 0.49396, 0.42031, 0.36785]
+[RHM] step=4329 train_Mpos_l=[0.99993, 0.99954, 0.99893, 0.74334, 0.79464, 0.83465] val_Mpos_l=[0.99993, 0.99962, 0.99909, 0.74139, 0.79504, 0.83542] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=4329 epoch=4.2275 running=1.916853 train_loss=1.917319 val_loss=1.916604 val_acc=0.386250 log_specnorm=160.070206
+[TRAIN] step=4400/100000 epoch=4.2969 loss=1.909540 dt=943.71ms
+[TRAIN] step=4500/100000 epoch=4.3945 loss=1.916401 dt=943.81ms
+[TRAIN] step=4600/100000 epoch=4.4922 loss=1.913862 dt=946.10ms
+[TRAIN] step=4700/100000 epoch=4.5898 loss=1.912173 dt=947.06ms
+[TRAIN] step=4800/100000 epoch=4.6875 loss=1.912478 dt=945.56ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_4863.pt
+[RHM] step=4863 train_peeled_loss_l=[0.00312, 0.00584, 0.01743, 0.45790, 0.41855, 0.36830] val_peeled_loss_l=[0.00322, 0.00582, 0.01748, 0.45893, 0.42008, 0.36718]
+[RHM] step=4863 train_Mpos_l=[0.99980, 0.99967, 0.99899, 0.77819, 0.79735, 0.83468] val_Mpos_l=[0.99977, 0.99967, 0.99893, 0.77597, 0.79731, 0.83590] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=4863 epoch=4.7490 running=1.911932 train_loss=1.908206 val_loss=1.907913 val_acc=0.390517 log_specnorm=162.650387
+[TRAIN] step=4900/100000 epoch=4.7852 loss=1.913588 dt=943.82ms
+[TRAIN] step=5000/100000 epoch=4.8828 loss=1.908887 dt=943.81ms
+[TRAIN] step=5100/100000 epoch=4.9805 loss=1.899563 dt=944.18ms
+[TRAIN] step=5200/100000 epoch=5.0781 loss=1.904859 dt=945.57ms
+[TRAIN] step=5300/100000 epoch=5.1758 loss=1.893798 dt=943.78ms
+[TRAIN] step=5400/100000 epoch=5.2734 loss=1.895895 dt=944.12ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_5462.pt
+[RHM] step=5462 train_peeled_loss_l=[0.00221, 0.00461, 0.01318, 0.40208, 0.41725, 0.36800] val_peeled_loss_l=[0.00227, 0.00458, 0.01330, 0.40252, 0.41752, 0.36775]
+[RHM] step=5462 train_Mpos_l=[0.99997, 0.99988, 0.99943, 0.82618, 0.79922, 0.83539] val_Mpos_l=[0.99996, 0.99989, 0.99938, 0.82483, 0.79935, 0.83583] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=5462 epoch=5.3340 running=1.891845 train_loss=1.892188 val_loss=1.891740 val_acc=0.394776 log_specnorm=164.667896
+[TRAIN] step=5500/100000 epoch=5.3711 loss=1.891945 dt=943.74ms
+[TRAIN] step=5600/100000 epoch=5.4688 loss=1.905180 dt=943.83ms
+[TRAIN] step=5700/100000 epoch=5.5664 loss=1.888240 dt=943.76ms
+[TRAIN] step=5800/100000 epoch=5.6641 loss=1.887011 dt=943.73ms
+[TRAIN] step=5900/100000 epoch=5.7617 loss=1.879363 dt=944.20ms
+[TRAIN] step=6000/100000 epoch=5.8594 loss=1.875058 dt=943.79ms
+[TRAIN] step=6100/100000 epoch=5.9570 loss=1.874867 dt=943.75ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_6136.pt
+[RHM] step=6136 train_peeled_loss_l=[0.00208, 0.00443, 0.01368, 0.33662, 0.41751, 0.36762] val_peeled_loss_l=[0.00208, 0.00450, 0.01365, 0.33850, 0.41754, 0.36756]
+[RHM] step=6136 train_Mpos_l=[0.99996, 0.99989, 0.99927, 0.87368, 0.80015, 0.83391] val_Mpos_l=[0.99996, 0.99987, 0.99922, 0.87174, 0.80035, 0.83426] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=6136 epoch=5.9922 running=1.881552 train_loss=1.877487 val_loss=1.877353 val_acc=0.398165 log_specnorm=167.334716
+[TRAIN] step=6200/100000 epoch=6.0547 loss=1.869551 dt=943.87ms
+[TRAIN] step=6300/100000 epoch=6.1523 loss=1.874896 dt=945.73ms
+[TRAIN] step=6400/100000 epoch=6.2500 loss=1.877091 dt=945.67ms
+[TRAIN] step=6500/100000 epoch=6.3477 loss=1.862259 dt=946.02ms
+[TRAIN] step=6600/100000 epoch=6.4453 loss=1.861273 dt=945.76ms
+[TRAIN] step=6700/100000 epoch=6.5430 loss=1.857097 dt=945.71ms
+[TRAIN] step=6800/100000 epoch=6.6406 loss=1.849136 dt=945.67ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_6893.pt
+[RHM] step=6893 train_peeled_loss_l=[0.00252, 0.00493, 0.01511, 0.25261, 0.41539, 0.37040] val_peeled_loss_l=[0.00242, 0.00488, 0.01490, 0.25298, 0.41495, 0.37110]
+[RHM] step=6893 train_Mpos_l=[0.99986, 0.99978, 0.99887, 0.91778, 0.80198, 0.83338] val_Mpos_l=[0.99988, 0.99976, 0.99895, 0.91759, 0.80320, 0.83361] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=6893 epoch=6.7314 running=1.855410 train_loss=1.857973 val_loss=1.858030 val_acc=0.402384 log_specnorm=170.052132
+[TRAIN] step=6900/100000 epoch=6.7383 loss=1.862613 dt=944.19ms
+[TRAIN] step=7000/100000 epoch=6.8359 loss=1.844137 dt=943.93ms
+[TRAIN] step=7100/100000 epoch=6.9336 loss=1.846623 dt=943.86ms
+[TRAIN] step=7200/100000 epoch=7.0312 loss=1.843353 dt=943.87ms
+[TRAIN] step=7300/100000 epoch=7.1289 loss=1.842417 dt=943.85ms
+[TRAIN] step=7400/100000 epoch=7.2266 loss=1.833759 dt=943.78ms
+[TRAIN] step=7500/100000 epoch=7.3242 loss=1.835678 dt=944.13ms
+[TRAIN] step=7600/100000 epoch=7.4219 loss=1.830188 dt=943.65ms
+[TRAIN] step=7700/100000 epoch=7.5195 loss=1.826220 dt=943.73ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_7743.pt
+[RHM] step=7743 train_peeled_loss_l=[0.00238, 0.00455, 0.01249, 0.18408, 0.41555, 0.38529] val_peeled_loss_l=[0.00245, 0.00447, 0.01223, 0.18454, 0.41497, 0.38679]
+[RHM] step=7743 train_Mpos_l=[0.99984, 0.99979, 0.99904, 0.95078, 0.80694, 0.82634] val_Mpos_l=[0.99981, 0.99985, 0.99909, 0.95078, 0.80915, 0.82799] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=7743 epoch=7.5615 running=1.814497 train_loss=1.846102 val_loss=1.846368 val_acc=0.408139 log_specnorm=172.923130
+[TRAIN] step=7800/100000 epoch=7.6172 loss=1.829622 dt=943.84ms
+[TRAIN] step=7900/100000 epoch=7.7148 loss=1.817931 dt=943.85ms
+[TRAIN] step=8000/100000 epoch=7.8125 loss=1.818370 dt=945.94ms
+[TRAIN] step=8100/100000 epoch=7.9102 loss=1.808610 dt=943.94ms
+[TRAIN] step=8200/100000 epoch=8.0078 loss=1.815249 dt=943.80ms
+[TRAIN] step=8300/100000 epoch=8.1055 loss=1.804138 dt=946.08ms
+[TRAIN] step=8400/100000 epoch=8.2031 loss=1.808807 dt=945.68ms
+[TRAIN] step=8500/100000 epoch=8.3008 loss=1.796057 dt=945.77ms
+[TRAIN] step=8600/100000 epoch=8.3984 loss=1.802207 dt=945.72ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_8697.pt
+[RHM] step=8697 train_peeled_loss_l=[0.00188, 0.00401, 0.01141, 0.09440, 0.38864, 0.34737] val_peeled_loss_l=[0.00185, 0.00393, 0.01130, 0.09437, 0.38783, 0.34825]
+[RHM] step=8697 train_Mpos_l=[0.99995, 0.99990, 0.99927, 0.98541, 0.82258, 0.84932] val_Mpos_l=[0.99995, 0.99991, 0.99930, 0.98558, 0.82331, 0.84799] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=8697 epoch=8.4932 running=1.793925 train_loss=1.796058 val_loss=1.795144 val_acc=0.414572 log_specnorm=175.722598
+[TRAIN] step=8700/100000 epoch=8.4961 loss=1.795384 dt=943.40ms
+[TRAIN] step=8800/100000 epoch=8.5938 loss=1.791973 dt=943.75ms
+[TRAIN] step=8900/100000 epoch=8.6914 loss=1.798364 dt=943.83ms
+[TRAIN] step=9000/100000 epoch=8.7891 loss=1.793286 dt=943.82ms
+[TRAIN] step=9100/100000 epoch=8.8867 loss=1.797445 dt=943.92ms
+[TRAIN] step=9200/100000 epoch=8.9844 loss=1.782729 dt=943.81ms
+[TRAIN] step=9300/100000 epoch=9.0820 loss=1.783662 dt=943.90ms
+[TRAIN] step=9400/100000 epoch=9.1797 loss=1.793529 dt=943.91ms
+[TRAIN] step=9500/100000 epoch=9.2773 loss=1.783485 dt=943.82ms
+[TRAIN] step=9600/100000 epoch=9.3750 loss=1.782271 dt=943.80ms
+[TRAIN] step=9700/100000 epoch=9.4727 loss=1.777900 dt=944.28ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_9770.pt
+[RHM] step=9770 train_peeled_loss_l=[0.00151, 0.00386, 0.00950, 0.05756, 0.38270, 0.34444] val_peeled_loss_l=[0.00155, 0.00375, 0.00947, 0.05783, 0.38315, 0.34523]
+[RHM] step=9770 train_Mpos_l=[0.99998, 0.99986, 0.99953, 0.99546, 0.82814, 0.84931] val_Mpos_l=[0.99998, 0.99990, 0.99953, 0.99546, 0.82850, 0.84911] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=9770 epoch=9.5410 running=1.782325 train_loss=1.782091 val_loss=1.781766 val_acc=0.415709 log_specnorm=177.973768
+[TRAIN] step=9800/100000 epoch=9.5703 loss=1.779699 dt=943.74ms
+[TRAIN] step=9900/100000 epoch=9.6680 loss=1.783694 dt=944.12ms
+[TRAIN] step=10000/100000 epoch=9.7656 loss=1.781409 dt=943.74ms
+[TRAIN] step=10100/100000 epoch=9.8633 loss=1.777276 dt=943.81ms
+[TRAIN] step=10200/100000 epoch=9.9609 loss=1.782713 dt=943.62ms
+[TRAIN] step=10300/100000 epoch=10.0586 loss=1.778835 dt=943.68ms
+[TRAIN] step=10400/100000 epoch=10.1562 loss=1.775300 dt=943.73ms
+[TRAIN] step=10500/100000 epoch=10.2539 loss=1.770656 dt=944.22ms
+[TRAIN] step=10600/100000 epoch=10.3516 loss=1.780939 dt=943.74ms
+[TRAIN] step=10700/100000 epoch=10.4492 loss=1.774911 dt=943.77ms
+[TRAIN] step=10800/100000 epoch=10.5469 loss=1.778885 dt=943.85ms
+[TRAIN] step=10900/100000 epoch=10.6445 loss=1.782442 dt=943.90ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_10975.pt
+[RHM] step=10975 train_peeled_loss_l=[0.00159, 0.00321, 0.00758, 0.04405, 0.37610, 0.33943] val_peeled_loss_l=[0.00156, 0.00313, 0.00755, 0.04434, 0.37643, 0.34054]
+[RHM] step=10975 train_Mpos_l=[0.99994, 0.99989, 0.99976, 0.99777, 0.83132, 0.85297] val_Mpos_l=[0.99995, 0.99993, 0.99977, 0.99761, 0.83007, 0.85236] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=10975 epoch=10.7178 running=1.771213 train_loss=1.773693 val_loss=1.773202 val_acc=0.418294 log_specnorm=180.829139
+[TRAIN] step=11000/100000 epoch=10.7422 loss=1.766664 dt=944.18ms
+[TRAIN] step=11100/100000 epoch=10.8398 loss=1.768753 dt=943.79ms
+[TRAIN] step=11200/100000 epoch=10.9375 loss=1.770463 dt=943.81ms
+[TRAIN] step=11300/100000 epoch=11.0352 loss=1.780516 dt=943.74ms
+[TRAIN] step=11400/100000 epoch=11.1328 loss=1.766805 dt=943.59ms
+[TRAIN] step=11500/100000 epoch=11.2305 loss=1.773129 dt=943.69ms
+[TRAIN] step=11600/100000 epoch=11.3281 loss=1.773197 dt=944.23ms
+[TRAIN] step=11700/100000 epoch=11.4258 loss=1.766766 dt=943.59ms
+[TRAIN] step=11800/100000 epoch=11.5234 loss=1.765761 dt=943.60ms
+[TRAIN] step=11900/100000 epoch=11.6211 loss=1.766520 dt=943.75ms
+[TRAIN] step=12000/100000 epoch=11.7188 loss=1.762937 dt=946.09ms
+[TRAIN] step=12100/100000 epoch=11.8164 loss=1.772778 dt=943.57ms
+[TRAIN] step=12200/100000 epoch=11.9141 loss=1.765826 dt=944.27ms
+[TRAIN] step=12300/100000 epoch=12.0117 loss=1.773487 dt=943.66ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_12328.pt
+[RHM] step=12328 train_peeled_loss_l=[0.00144, 0.00288, 0.00658, 0.03107, 0.37186, 0.33734] val_peeled_loss_l=[0.00140, 0.00284, 0.00676, 0.03125, 0.37248, 0.33834]
+[RHM] step=12328 train_Mpos_l=[0.99998, 0.99996, 0.99981, 0.99906, 0.83345, 0.85469] val_Mpos_l=[0.99998, 0.99996, 0.99976, 0.99901, 0.83405, 0.85423] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=12328 epoch=12.0391 running=1.771864 train_loss=1.765942 val_loss=1.766090 val_acc=0.418129 log_specnorm=182.934911
+[TRAIN] step=12400/100000 epoch=12.1094 loss=1.770365 dt=943.70ms
+[TRAIN] step=12500/100000 epoch=12.2070 loss=1.768491 dt=943.67ms
+[TRAIN] step=12600/100000 epoch=12.3047 loss=1.762993 dt=943.62ms
+[TRAIN] step=12700/100000 epoch=12.4023 loss=1.763800 dt=944.11ms
+[TRAIN] step=12800/100000 epoch=12.5000 loss=1.769067 dt=943.72ms
+[TRAIN] step=12900/100000 epoch=12.5977 loss=1.758360 dt=945.65ms
+[TRAIN] step=13000/100000 epoch=12.6953 loss=1.776793 dt=947.16ms
+[TRAIN] step=13100/100000 epoch=12.7930 loss=1.758930 dt=945.56ms
+[TRAIN] step=13200/100000 epoch=12.8906 loss=1.769542 dt=945.95ms
+[TRAIN] step=13300/100000 epoch=12.9883 loss=1.760561 dt=945.60ms
+[TRAIN] step=13400/100000 epoch=13.0859 loss=1.773147 dt=945.61ms
+[TRAIN] step=13500/100000 epoch=13.1836 loss=1.761922 dt=945.55ms
+[TRAIN] step=13600/100000 epoch=13.2812 loss=1.761418 dt=945.55ms
+[TRAIN] step=13700/100000 epoch=13.3789 loss=1.770421 dt=946.17ms
+[TRAIN] step=13800/100000 epoch=13.4766 loss=1.760036 dt=945.81ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_13849.pt
+[RHM] step=13849 train_peeled_loss_l=[0.00136, 0.00260, 0.00589, 0.02785, 0.36769, 0.33465] val_peeled_loss_l=[0.00140, 0.00264, 0.00593, 0.02825, 0.36755, 0.33444]
+[RHM] step=13849 train_Mpos_l=[0.99999, 0.99996, 0.99985, 0.99943, 0.83695, 0.85597] val_Mpos_l=[0.99998, 0.99997, 0.99984, 0.99934, 0.83726, 0.85668] train_valid_l=[0.50794, 0.52496, 0.40835, 0.24731, 0.17043, 0.10061] val_valid_l=[0.50794, 0.52483, 0.40829, 0.24795, 0.17070, 0.10067]
+[VALID] step=13849 epoch=13.5244 running=1.762564 train_loss=1.763138 val_loss=1.763093 val_acc=0.419226 log_specnorm=185.295709
+[TRAIN] step=13900/100000 epoch=13.5742 loss=1.764741 dt=946.80ms
+[TRAIN] step=14000/100000 epoch=13.6719 loss=1.757453 dt=946.17ms
+[TRAIN] step=14100/100000 epoch=13.7695 loss=1.766349 dt=946.54ms
+[TRAIN] step=14200/100000 epoch=13.8672 loss=1.762435 dt=946.27ms
+[TRAIN] step=14300/100000 epoch=13.9648 loss=1.764340 dt=946.18ms
+[TRAIN] step=14400/100000 epoch=14.0625 loss=1.766176 dt=946.04ms
+[TRAIN] step=14500/100000 epoch=14.1602 loss=1.769873 dt=946.15ms
+[TRAIN] step=14600/100000 epoch=14.2578 loss=1.760865 dt=945.93ms
+[TRAIN] step=14700/100000 epoch=14.3555 loss=1.761452 dt=946.39ms
+[TRAIN] step=14800/100000 epoch=14.4531 loss=1.764562 dt=946.39ms
+[TRAIN] step=14900/100000 epoch=14.5508 loss=1.759086 dt=946.72ms
+[TRAIN] step=15000/100000 epoch=14.6484 loss=1.756242 dt=946.21ms
+[TRAIN] step=15100/100000 epoch=14.7461 loss=1.772869 dt=946.09ms
+[TRAIN] step=15200/100000 epoch=14.8438 loss=1.756608 dt=946.32ms
+[TRAIN] step=15300/100000 epoch=14.9414 loss=1.758389 dt=946.00ms
+[TRAIN] step=15400/100000 epoch=15.0391 loss=1.759424 dt=946.21ms
+[TRAIN] step=15500/100000 epoch=15.1367 loss=1.760898 dt=946.23ms
+[CHECKPOINT] saved /mnt/beegfs/2a/mb12724/franc/small-language-modelling/data/slm_MAMBA_uniform_L6_v1/rhm_mamba_P_65536_seed_rules_1_seed_sample_1_seed_model_1/checkpoints/checkpoint_step_15557.pt
