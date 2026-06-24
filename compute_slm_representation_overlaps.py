@@ -36,6 +36,15 @@ Centered linear CKA is computed separately by split, token position and layer.
 * representation_mode=block_update:
     Residual write h_out - h_in for each block/layer.
 
+Predictive target
+-----------------
+A King-style cross-validated linear readout is fitted from source
+representations H(t,l) to one fixed target representation H(t',l').  The
+reported score is the un-clipped normalized explained variance on held-out
+folds, with ridge regularisation selected by five-fold cross-validation by
+default.  Source times are selected every --take_every saved checkpoints, and
+the target time defaults to the last saved checkpoint.
+
 Weight target
 -------------
 Cosine overlaps are computed for:
@@ -2354,6 +2363,1024 @@ def compute_representation_overlaps(
     )
 
 
+
+# =============================================================================
+# Predictive linear-readout overlaps
+# =============================================================================
+
+
+def parse_ridge_alphas(value: str) -> np.ndarray:
+    """Parse a comma-separated ridge-alpha grid."""
+
+    alphas = []
+
+    for item in str(value).split(","):
+        item = item.strip()
+
+        if not item:
+            continue
+
+        alpha = float(item)
+
+        if alpha < 0:
+            raise ValueError(
+                "Ridge alphas must be non-negative, "
+                f"got {alpha}."
+            )
+
+        alphas.append(alpha)
+
+    if not alphas:
+        raise ValueError("Empty ridge-alpha grid.")
+
+    return np.asarray(
+        alphas,
+        dtype=np.float64,
+    )
+
+
+def predictive_representation_path(
+    root: Path,
+    role: str,
+    checkpoint_index: int,
+    layer_index: int,
+    position_index: int,
+) -> Path:
+    """Return a temporary raw-representation filename for predictive overlap."""
+
+    return (
+        root
+        / "predictive"
+        / role
+        / (
+            f"repr_k{checkpoint_index:05d}_"
+            f"l{layer_index:03d}_"
+            f"p{position_index:04d}.npy"
+        )
+    )
+
+
+@torch.no_grad()
+def store_predictive_checkpoint_representations(
+    checkpoint_path: Path,
+    checkpoint_index: int,
+    role: str,
+    config: argparse.Namespace,
+    init_module: Any,
+    reference: torch.Tensor,
+    cli: argparse.Namespace,
+    temp_dir: Path,
+) -> Tuple[
+    List[str],
+    Dict[str, Any],
+    str,
+    int,
+]:
+    """Extract raw representations for one checkpoint and one reference set."""
+
+    model, metadata = reconstruct_model(
+        checkpoint_path,
+        config,
+        init_module,
+        cli.device,
+    )
+
+    layer_names = representation_names(
+        model,
+        cli.representation_mode,
+        cli.include_embedding,
+        cli.include_final_norm,
+    )
+
+    model_architecture = architecture(
+        model
+    )
+
+    loader = DataLoader(
+        TensorDataset(
+            reference
+        ),
+        batch_size=cli.batch_size,
+        shuffle=False,
+        num_workers=0,
+    )
+
+    chunks: Optional[
+        List[
+            List[
+                List[torch.Tensor]
+            ]
+        ]
+    ] = None
+
+    for (batch,) in loader:
+        representations = forward_representations(
+            model,
+            batch.to(
+                cli.device
+            ),
+            cli.representation_mode,
+            cli.include_embedding,
+            cli.include_final_norm,
+        )
+
+        if chunks is None:
+            chunks = [
+                [
+                    []
+                    for _ in range(
+                        representation.shape[1]
+                    )
+                ]
+                for representation in representations
+            ]
+
+        for layer_index, representation in enumerate(
+            representations
+        ):
+            for position_index in range(
+                representation.shape[1]
+            ):
+                chunks[
+                    layer_index
+                ][
+                    position_index
+                ].append(
+                    representation[
+                        :,
+                        position_index,
+                    ].contiguous()
+                )
+
+    if chunks is None:
+        raise RuntimeError(
+            "No batches generated for predictive "
+            f"role={role}."
+        )
+
+    for layer_index, positions in enumerate(
+        chunks
+    ):
+        for position_index, pieces in enumerate(
+            positions
+        ):
+            hidden = torch.cat(
+                pieces
+            ).float().cpu().numpy()
+
+            path = predictive_representation_path(
+                temp_dir,
+                role,
+                checkpoint_index,
+                layer_index,
+                position_index,
+            )
+
+            path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            np.save(
+                path,
+                hidden.astype(
+                    np.float32,
+                    copy=False,
+                ),
+            )
+
+    number_positions = len(
+        chunks[0]
+    )
+
+    del model
+
+    if (
+        cli.device.startswith("cuda")
+        and torch.cuda.is_available()
+    ):
+        torch.cuda.empty_cache()
+
+    return (
+        layer_names,
+        metadata,
+        model_architecture,
+        number_positions,
+    )
+
+
+def make_cv_folds(
+    number_samples: int,
+    number_folds: int,
+    seed: int,
+) -> List[np.ndarray]:
+    """Create deterministic shuffled folds for readout cross-validation."""
+
+    number_samples = int(
+        number_samples
+    )
+
+    number_folds = int(
+        number_folds
+    )
+
+    if number_folds < 2:
+        raise ValueError(
+            "predictive_num_folds must be at least 2."
+        )
+
+    if number_samples < number_folds:
+        raise ValueError(
+            "Need at least one sample per fold: "
+            f"number_samples={number_samples}, "
+            f"number_folds={number_folds}."
+        )
+
+    generator = np.random.default_rng(
+        int(seed)
+    )
+
+    permutation = generator.permutation(
+        number_samples
+    )
+
+    return [
+        fold.astype(
+            np.int64,
+            copy=False,
+        )
+        for fold in np.array_split(
+            permutation,
+            number_folds,
+        )
+    ]
+
+
+def _standardize_train_test(
+    train: np.ndarray,
+    test: np.ndarray,
+    *,
+    standardize: bool,
+) -> Tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
+    """Center, and optionally z-score, a predictor matrix by train stats."""
+
+    mean = train.mean(
+        axis=0,
+        keepdims=True,
+    )
+
+    train_out = train - mean
+    test_out = test - mean
+
+    if standardize:
+        std = train_out.std(
+            axis=0,
+            keepdims=True,
+        )
+
+        std = np.where(
+            std > EPS,
+            std,
+            1.0,
+        )
+
+        train_out = train_out / std
+        test_out = test_out / std
+
+    return (
+        train_out,
+        test_out,
+        mean,
+    )
+
+
+def ridge_predictive_ev_cv(
+    x: np.ndarray,
+    y: np.ndarray,
+    folds: Sequence[np.ndarray],
+    alphas: np.ndarray,
+    *,
+    standardize_x: bool,
+) -> Tuple[
+    float,
+    float,
+    np.ndarray,
+    np.ndarray,
+]:
+    """Five-fold RidgeCV-style normalized explained variance.
+
+    For each ridge value, a linear map W is learned on K-1 folds and evaluated
+    on the held-out fold.  The selected alpha is the one with the largest
+    aggregated held-out normalized explained variance.  The final score is not
+    clipped; values below zero mean worse than the train-mean baseline.
+    """
+
+    x = np.asarray(
+        x,
+        dtype=np.float64,
+    )
+
+    y = np.asarray(
+        y,
+        dtype=np.float64,
+    )
+
+    if x.ndim != 2 or y.ndim != 2:
+        raise ValueError(
+            f"Expected 2D X and Y, got {x.shape} and {y.shape}."
+        )
+
+    if x.shape[0] != y.shape[0]:
+        raise ValueError(
+            f"X and Y must have the same number of samples, "
+            f"got {x.shape[0]} and {y.shape[0]}."
+        )
+
+    number_samples = x.shape[0]
+    all_indices = np.arange(
+        number_samples,
+        dtype=np.int64,
+    )
+
+    fold_scores = np.full(
+        (
+            len(alphas),
+            len(folds),
+        ),
+        np.nan,
+        dtype=np.float64,
+    )
+
+    total_numerators = np.zeros(
+        len(alphas),
+        dtype=np.float64,
+    )
+
+    total_denominators = np.zeros(
+        len(alphas),
+        dtype=np.float64,
+    )
+
+    for fold_index, test_index in enumerate(
+        folds
+    ):
+        test_mask = np.zeros(
+            number_samples,
+            dtype=bool,
+        )
+
+        test_mask[
+            test_index
+        ] = True
+
+        train_index = all_indices[
+            ~test_mask
+        ]
+
+        x_train = x[
+            train_index
+        ]
+
+        x_test = x[
+            test_index
+        ]
+
+        y_train = y[
+            train_index
+        ]
+
+        y_test = y[
+            test_index
+        ]
+
+        x_train, x_test, _ = _standardize_train_test(
+            x_train,
+            x_test,
+            standardize=standardize_x,
+        )
+
+        y_mean = y_train.mean(
+            axis=0,
+            keepdims=True,
+        )
+
+        y_train_centered = y_train - y_mean
+        y_test_centered = y_test - y_mean
+
+        denominator = float(
+            np.sum(
+                y_test_centered
+                * y_test_centered
+            )
+        )
+
+        if denominator <= EPS:
+            continue
+
+        xtx = (
+            x_train.T
+            @ x_train
+        )
+
+        xty = (
+            x_train.T
+            @ y_train_centered
+        )
+
+        identity = np.eye(
+            xtx.shape[0],
+            dtype=np.float64,
+        )
+
+        for alpha_index, alpha in enumerate(
+            alphas
+        ):
+            system = xtx + float(alpha) * identity
+
+            try:
+                weights = np.linalg.solve(
+                    system,
+                    xty,
+                )
+
+            except np.linalg.LinAlgError:
+                weights = np.linalg.pinv(
+                    system,
+                    rcond=1e-10,
+                ) @ xty
+
+            prediction_centered = (
+                x_test
+                @ weights
+            )
+
+            residual = (
+                y_test_centered
+                - prediction_centered
+            )
+
+            numerator = float(
+                np.sum(
+                    residual
+                    * residual
+                )
+            )
+
+            fold_score = 1.0 - numerator / denominator
+
+            fold_scores[
+                alpha_index,
+                fold_index,
+            ] = fold_score
+
+            total_numerators[
+                alpha_index
+            ] += numerator
+
+            total_denominators[
+                alpha_index
+            ] += denominator
+
+    scores_by_alpha = np.full(
+        len(alphas),
+        np.nan,
+        dtype=np.float64,
+    )
+
+    valid = total_denominators > EPS
+
+    scores_by_alpha[
+        valid
+    ] = 1.0 - (
+        total_numerators[
+            valid
+        ]
+        / total_denominators[
+            valid
+        ]
+    )
+
+    if not np.any(
+        np.isfinite(
+            scores_by_alpha
+        )
+    ):
+        return (
+            float("nan"),
+            float("nan"),
+            np.full(
+                len(folds),
+                np.nan,
+                dtype=np.float64,
+            ),
+            scores_by_alpha,
+        )
+
+    best_alpha_index = int(
+        np.nanargmax(
+            scores_by_alpha
+        )
+    )
+
+    return (
+        float(
+            scores_by_alpha[
+                best_alpha_index
+            ]
+        ),
+        float(
+            alphas[
+                best_alpha_index
+            ]
+        ),
+        fold_scores[
+            best_alpha_index
+        ].copy(),
+        scores_by_alpha,
+    )
+
+
+def resolve_predictive_target_index(
+    checkpoints: Sequence[Path],
+    cli: argparse.Namespace,
+) -> int:
+    """Resolve the single target checkpoint t'."""
+
+    if not checkpoints:
+        raise ValueError("No checkpoints available.")
+
+    if cli.target_step is not None:
+        matches = [
+            index
+            for index, path in enumerate(
+                checkpoints
+            )
+            if checkpoint_step(path) == int(
+                cli.target_step
+            )
+        ]
+
+        if not matches:
+            available = [
+                checkpoint_step(path)
+                for path in checkpoints
+            ]
+
+            raise ValueError(
+                f"target_step={cli.target_step} not found. "
+                f"Available steps include {available[:10]}..."
+            )
+
+        return matches[
+            -1
+        ]
+
+    target_index = int(
+        cli.target_index
+    )
+
+    if target_index < 0:
+        target_index = len(
+            checkpoints
+        ) + target_index
+
+    if target_index < 0 or target_index >= len(
+        checkpoints
+    ):
+        raise ValueError(
+            f"target_index={cli.target_index} is outside "
+            f"[0,{len(checkpoints)-1}]."
+        )
+
+    return target_index
+
+
+def predictive_source_indices(
+    number_checkpoints: int,
+    target_index: int,
+    take_every: int,
+    max_sources: int,
+) -> np.ndarray:
+    """Select source times t every take_every checkpoints, always including t'."""
+
+    take_every = int(
+        take_every
+    )
+
+    if take_every <= 0:
+        raise ValueError(
+            f"take_every must be positive, got {take_every}."
+        )
+
+    selected = list(
+        range(
+            0,
+            number_checkpoints,
+            take_every,
+        )
+    )
+
+    selected.append(
+        int(target_index)
+    )
+
+    selected = sorted(
+        set(selected)
+    )
+
+    max_sources = int(
+        max_sources
+    )
+
+    if (
+        max_sources > 0
+        and len(selected) > max_sources
+    ):
+        sub = log_select_indices(
+            len(selected),
+            max_sources,
+        )
+
+        selected = [
+            selected[index]
+            for index in sub
+        ]
+
+        if target_index not in selected:
+            selected[-1] = int(
+                target_index
+            )
+
+        selected = sorted(
+            set(selected)
+        )
+
+    return np.asarray(
+        selected,
+        dtype=np.int64,
+    )
+
+
+def compute_predictive_overlaps(
+    source_checkpoints: Sequence[Path],
+    target_checkpoint: Path,
+    config: argparse.Namespace,
+    init_module: Any,
+    readout_reference: torch.Tensor,
+    cli: argparse.Namespace,
+    temp_dir: Path,
+) -> Tuple[
+    Dict[str, Any],
+    List[Dict[str, Any]],
+    Dict[str, Any],
+    str,
+]:
+    """Compute directed predictive overlaps H(t,l) -> H(t',l')."""
+
+    alphas = parse_ridge_alphas(
+        cli.ridge_alphas
+    )
+
+    folds = make_cv_folds(
+        int(
+            readout_reference.shape[0]
+        ),
+        int(
+            cli.predictive_num_folds
+        ),
+        int(
+            cli.subset_seed
+        )
+        + 7919,
+    )
+
+    print(
+        "[INFO] extracting predictive target representations "
+        f"t'={target_checkpoint.name}",
+        flush=True,
+    )
+
+    (
+        target_layer_names,
+        target_metadata,
+        architecture_reference,
+        number_positions,
+    ) = store_predictive_checkpoint_representations(
+        target_checkpoint,
+        0,
+        "target",
+        config,
+        init_module,
+        readout_reference,
+        cli,
+        temp_dir,
+    )
+
+    source_metadata_list: List[
+        Dict[str, Any]
+    ] = []
+
+    source_layer_names_reference: Optional[
+        List[str]
+    ] = None
+
+    for source_index, checkpoint_path in enumerate(
+        source_checkpoints
+    ):
+        print(
+            "[INFO] extracting predictive source representations "
+            f"{source_index + 1}/{len(source_checkpoints)}: "
+            f"{checkpoint_path.name}",
+            flush=True,
+        )
+
+        (
+            source_layer_names,
+            source_metadata,
+            source_architecture,
+            source_number_positions,
+        ) = store_predictive_checkpoint_representations(
+            checkpoint_path,
+            source_index,
+            "source",
+            config,
+            init_module,
+            readout_reference,
+            cli,
+            temp_dir,
+        )
+
+        if source_layer_names_reference is None:
+            source_layer_names_reference = source_layer_names
+
+        elif source_layer_names != source_layer_names_reference:
+            raise RuntimeError(
+                "Source layer names changed between checkpoints."
+            )
+
+        if (
+            source_architecture != architecture_reference
+            or source_number_positions != number_positions
+        ):
+            raise RuntimeError(
+                "Architecture or number of positions changed "
+                "between source and target checkpoints."
+            )
+
+        source_metadata_list.append(
+            source_metadata
+        )
+
+    if source_layer_names_reference is None:
+        raise RuntimeError(
+            "No source checkpoint was processed."
+        )
+
+    number_source_layers = len(
+        source_layer_names_reference
+    )
+
+    number_target_layers = len(
+        target_layer_names
+    )
+
+    number_sources = len(
+        source_checkpoints
+    )
+
+    q = np.full(
+        (
+            number_positions,
+            number_source_layers,
+            number_target_layers,
+            number_sources,
+        ),
+        np.nan,
+        dtype=np.float32,
+    )
+
+    best_alpha = np.full_like(
+        q,
+        np.nan,
+        dtype=np.float32,
+    )
+
+    fold_q = np.full(
+        (
+            number_positions,
+            number_source_layers,
+            number_target_layers,
+            number_sources,
+            len(folds),
+        ),
+        np.nan,
+        dtype=np.float32,
+    )
+
+    alpha_scores = np.full(
+        (
+            number_positions,
+            number_source_layers,
+            number_target_layers,
+            number_sources,
+            len(alphas),
+        ),
+        np.nan,
+        dtype=np.float32,
+    )
+
+    if cli.predictive_layer_mode == "same":
+        layer_pairs = [
+            (
+                layer_index,
+                layer_index,
+            )
+            for layer_index in range(
+                min(
+                    number_source_layers,
+                    number_target_layers,
+                )
+            )
+        ]
+
+    elif cli.predictive_layer_mode == "all":
+        layer_pairs = [
+            (
+                source_layer_index,
+                target_layer_index,
+            )
+            for source_layer_index in range(
+                number_source_layers
+            )
+            for target_layer_index in range(
+                number_target_layers
+            )
+        ]
+
+    else:
+        raise ValueError(
+            f"Unknown predictive_layer_mode={cli.predictive_layer_mode}."
+        )
+
+    for position_index in range(
+        number_positions
+    ):
+        for source_index in range(
+            number_sources
+        ):
+            source_cache: Dict[
+                int,
+                np.ndarray,
+            ] = {}
+
+            target_cache: Dict[
+                int,
+                np.ndarray,
+            ] = {}
+
+            for pair_counter, (source_layer_index, target_layer_index) in enumerate(
+                layer_pairs
+            ):
+                print(
+                    "[INFO] predictive ridge "
+                    f"position={position_index} "
+                    f"source_time={source_index + 1}/{number_sources} "
+                    f"source_layer={source_layer_index} "
+                    f"target_layer={target_layer_index} "
+                    f"pair={pair_counter + 1}/{len(layer_pairs)}",
+                    flush=True,
+                )
+
+                if source_layer_index not in source_cache:
+                    source_cache[
+                        source_layer_index
+                    ] = np.load(
+                        predictive_representation_path(
+                            temp_dir,
+                            "source",
+                            source_index,
+                            source_layer_index,
+                            position_index,
+                        ),
+                        mmap_mode="r",
+                    ).astype(
+                        np.float64,
+                        copy=False,
+                    )
+
+                if target_layer_index not in target_cache:
+                    target_cache[
+                        target_layer_index
+                    ] = np.load(
+                        predictive_representation_path(
+                            temp_dir,
+                            "target",
+                            0,
+                            target_layer_index,
+                            position_index,
+                        ),
+                        mmap_mode="r",
+                    ).astype(
+                        np.float64,
+                        copy=False,
+                    )
+
+                value, alpha, fold_values, alpha_values = ridge_predictive_ev_cv(
+                    source_cache[
+                        source_layer_index
+                    ],
+                    target_cache[
+                        target_layer_index
+                    ],
+                    folds,
+                    alphas,
+                    standardize_x=bool(
+                        cli.predictive_standardize_x
+                    ),
+                )
+
+                q[
+                    position_index,
+                    source_layer_index,
+                    target_layer_index,
+                    source_index,
+                ] = value
+
+                best_alpha[
+                    position_index,
+                    source_layer_index,
+                    target_layer_index,
+                    source_index,
+                ] = alpha
+
+                fold_q[
+                    position_index,
+                    source_layer_index,
+                    target_layer_index,
+                    source_index,
+                    :,
+                ] = fold_values.astype(
+                    np.float32,
+                    copy=False,
+                )
+
+                alpha_scores[
+                    position_index,
+                    source_layer_index,
+                    target_layer_index,
+                    source_index,
+                    :,
+                ] = alpha_values.astype(
+                    np.float32,
+                    copy=False,
+                )
+
+    result = {
+        "predictive_q_by_position": q,
+        "predictive_q_position_mean": np.nanmean(
+            q,
+            axis=0,
+        ),
+        "predictive_best_alpha_by_position": best_alpha,
+        "predictive_best_alpha_position_median": np.nanmedian(
+            best_alpha,
+            axis=0,
+        ),
+        "predictive_fold_q_by_position": fold_q,
+        "predictive_alpha_scores_by_position": alpha_scores,
+        "ridge_alphas": alphas.astype(
+            np.float64,
+            copy=False,
+        ),
+        "source_layer_names": np.asarray(
+            source_layer_names_reference,
+            dtype=object,
+        ),
+        "target_layer_names": np.asarray(
+            target_layer_names,
+            dtype=object,
+        ),
+        "fold_sizes": np.asarray(
+            [
+                len(fold)
+                for fold in folds
+            ],
+            dtype=np.int64,
+        ),
+    }
+
+    return (
+        result,
+        source_metadata_list,
+        target_metadata,
+        architecture_reference,
+    )
+
+
 # =============================================================================
 # Weight overlaps
 # =============================================================================
@@ -3079,6 +4106,18 @@ def default_output_name(
             "weight_overlaps"
         )
 
+    if (
+        cli.overlap_target
+        == "predictive"
+    ):
+        return (
+            f"{base_name}_"
+            "predictive_overlaps_"
+            f"{cli.representation_mode}_"
+            f"{cli.predictive_layer_mode}_"
+            f"every{cli.take_every}"
+        )
+
     return (
         f"{base_name}_"
         "representation_overlaps_"
@@ -3273,6 +4312,201 @@ def save_weights(
                 "component_parameter_groups"
             ]
         ),
+    }
+
+    metadata_path.write_text(
+        json.dumps(
+            jsonify(
+                metadata_payload
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+    print(
+        f"[INFO] saved {output_path}",
+        flush=True,
+    )
+
+
+
+def save_predictive(
+    output_dir: Path,
+    result: Mapping[str, Any],
+    source_checkpoints: Sequence[Path],
+    target_checkpoint: Path,
+    source_metadata: Sequence[
+        Mapping[str, Any]
+    ],
+    target_metadata: Mapping[str, Any],
+    reference_metadata: Mapping[
+        str,
+        Any,
+    ],
+    config: argparse.Namespace,
+    run_dir: Path,
+    model_architecture: str,
+    cli: argparse.Namespace,
+) -> None:
+    """Save predictive linear-readout overlap outputs."""
+
+    arrays = common_arrays(
+        source_checkpoints,
+        source_metadata,
+        config,
+        run_dir,
+        model_architecture,
+    )
+
+    arrays.update(
+        {
+            key: value
+            for key, value in result.items()
+            if isinstance(
+                value,
+                np.ndarray,
+            )
+        }
+    )
+
+    target_step_value, target_epoch_value = steps_and_epochs(
+        [
+            target_checkpoint
+        ],
+        [
+            target_metadata
+        ],
+        config,
+    )
+
+    q = result[
+        "predictive_q_by_position"
+    ]
+
+    arrays.update(
+        {
+            "overlap_target": np.asarray(
+                "predictive"
+            ),
+
+            "representation_mode": np.asarray(
+                cli.representation_mode
+            ),
+
+            "predictive_layer_mode": np.asarray(
+                cli.predictive_layer_mode
+            ),
+
+            "predictive_num_folds": np.asarray(
+                cli.predictive_num_folds
+            ),
+
+            "predictive_standardize_x": np.asarray(
+                cli.predictive_standardize_x
+            ),
+
+            "take_every": np.asarray(
+                cli.take_every
+            ),
+
+            "target_checkpoint_file": np.asarray(
+                str(
+                    target_checkpoint
+                )
+            ),
+
+            "target_checkpoint_name": np.asarray(
+                target_checkpoint.name
+            ),
+
+            "target_step": target_step_value,
+
+            "target_epoch": target_epoch_value,
+
+            "target_metadata_json": np.asarray(
+                json.dumps(
+                    jsonify(
+                        target_metadata
+                    ),
+                    sort_keys=True,
+                )
+            ),
+
+            "input_token_positions_1based": np.arange(
+                1,
+                q.shape[0] + 1,
+            ),
+
+            "target_token_positions_1based": np.arange(
+                2,
+                q.shape[0] + 2,
+            ),
+
+            "reference_source": np.asarray(
+                reference_metadata[
+                    "reference_source"
+                ]
+            ),
+
+            "reference_metadata_json": np.asarray(
+                json.dumps(
+                    jsonify(
+                        reference_metadata
+                    ),
+                    sort_keys=True,
+                )
+            ),
+
+            "include_embedding": np.asarray(
+                cli.include_embedding
+            ),
+
+            "include_final_norm": np.asarray(
+                cli.include_final_norm
+            ),
+        }
+    )
+
+    output_path = (
+        output_dir
+        / "predictive_overlaps.npz"
+    )
+
+    np.savez_compressed(
+        output_path,
+        **arrays,
+    )
+
+    metadata_path = (
+        output_dir
+        / "metadata.json"
+    )
+
+    metadata_payload = {
+        "run_dir": run_dir,
+        "output_path": output_path,
+        "overlap_target": "predictive",
+        "architecture": model_architecture,
+        "representation_mode": cli.representation_mode,
+        "predictive_layer_mode": cli.predictive_layer_mode,
+        "predictive_num_folds": cli.predictive_num_folds,
+        "ridge_alphas": result[
+            "ridge_alphas"
+        ],
+        "take_every": cli.take_every,
+        "source_num_checkpoints": len(
+            source_checkpoints
+        ),
+        "target_checkpoint": target_checkpoint,
+        "source_layer_names": result[
+            "source_layer_names"
+        ],
+        "target_layer_names": result[
+            "target_layer_names"
+        ],
+        "num_positions": q.shape[0],
+        "reference": reference_metadata,
     }
 
     metadata_path.write_text(
@@ -3552,6 +4786,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "representations",
             "weights",
+            "predictive",
         ),
         default="representations",
     )
@@ -3612,6 +4847,64 @@ def parse_args() -> argparse.Namespace:
         "--num_checkpoints",
         type=int,
         default=0,
+    )
+
+    parser.add_argument(
+        "--take_every",
+        type=int,
+        default=4,
+        help="Predictive target: use one source checkpoint every this many saved checkpoints.",
+    )
+
+    parser.add_argument(
+        "--target_step",
+        type=int,
+        default=None,
+        help="Predictive target: checkpoint step used as t'. Default: last checkpoint.",
+    )
+
+    parser.add_argument(
+        "--target_index",
+        type=int,
+        default=-1,
+        help="Predictive target: checkpoint index used as t' when target_step is absent.",
+    )
+
+    parser.add_argument(
+        "--predictive_layer_mode",
+        choices=(
+            "same",
+            "all",
+        ),
+        default="same",
+        help="Predictive target: same computes only l'=l; all computes every layer pair.",
+    )
+
+    parser.add_argument(
+        "--predictive_num_folds",
+        type=int,
+        default=5,
+        help="Predictive target: number of readout CV folds.",
+    )
+
+    parser.add_argument(
+        "--ridge_alphas",
+        type=str,
+        default="1e-6,1e-4,1e-2,1e0,1e2,1e4,1e6",
+        help="Predictive target: comma-separated ridge-alpha grid.",
+    )
+
+    parser.add_argument(
+        "--predictive_standardize_x",
+        action="store_true",
+        default=True,
+        help="Predictive target: z-score source features inside each train fold.",
+    )
+
+    parser.add_argument(
+        "--no_predictive_standardize_x",
+        dest="predictive_standardize_x",
+        action="store_false",
     )
 
     parser.add_argument(
@@ -3721,10 +5014,30 @@ def main() -> None:
         cli.max_step,
     )
 
-    selected_indices = log_select_indices(
-        len(all_checkpoints),
-        cli.num_checkpoints,
-    )
+    predictive_target_checkpoint: Optional[Path] = None
+
+    if cli.overlap_target == "predictive":
+        predictive_target_index = resolve_predictive_target_index(
+            all_checkpoints,
+            cli,
+        )
+
+        selected_indices = predictive_source_indices(
+            len(all_checkpoints),
+            predictive_target_index,
+            cli.take_every,
+            cli.num_checkpoints,
+        )
+
+        predictive_target_checkpoint = all_checkpoints[
+            predictive_target_index
+        ]
+
+    else:
+        selected_indices = log_select_indices(
+            len(all_checkpoints),
+            cli.num_checkpoints,
+        )
 
     checkpoints = [
         all_checkpoints[index]
@@ -3760,6 +5073,13 @@ def main() -> None:
         f"{len(all_checkpoints)}",
         flush=True,
     )
+
+    if predictive_target_checkpoint is not None:
+        print(
+            "[INFO] predictive_target_checkpoint="
+            f"{predictive_target_checkpoint.name}",
+            flush=True,
+        )
 
     print(
         f"[INFO] output_dir={output_dir}",
@@ -3828,6 +5148,90 @@ def main() -> None:
     )
 
     started = time.time()
+
+    if cli.overlap_target == "predictive":
+        if predictive_target_checkpoint is None:
+            raise RuntimeError(
+                "Internal error: predictive target checkpoint was not resolved."
+            )
+
+        readout_reference = torch.cat(
+            [
+                train_reference,
+                valid_reference,
+            ],
+            dim=0,
+        )
+
+        predictive_reference_metadata = dict(
+            reference_metadata
+        )
+
+        predictive_reference_metadata.update(
+            {
+                "readout_reference_source": "train_reference_plus_valid_reference",
+                "readout_num_samples": int(
+                    readout_reference.shape[0]
+                ),
+                "readout_num_folds": int(
+                    cli.predictive_num_folds
+                ),
+                "readout_fold_seed": int(
+                    cli.subset_seed
+                )
+                + 7919,
+            }
+        )
+
+        (
+            predictive_result,
+            source_metadata_list,
+            target_metadata,
+            model_architecture,
+        ) = compute_predictive_overlaps(
+            checkpoints,
+            predictive_target_checkpoint,
+            config,
+            init_module,
+            readout_reference,
+            cli,
+            temp_dir,
+        )
+
+        save_predictive(
+            output_dir,
+            predictive_result,
+            checkpoints,
+            predictive_target_checkpoint,
+            source_metadata_list,
+            target_metadata,
+            predictive_reference_metadata,
+            config,
+            run_dir,
+            model_architecture,
+            cli,
+        )
+
+        print(
+            "[INFO] total predictive-overlap time="
+            f"{time.time() - started:.2f}s",
+            flush=True,
+        )
+
+        if cli.keep_temp:
+            print(
+                "[INFO] temporary files kept in "
+                f"{temp_dir}",
+                flush=True,
+            )
+
+        else:
+            shutil.rmtree(
+                temp_dir,
+                ignore_errors=True,
+            )
+
+        return
 
     (
         train_cka,
