@@ -251,7 +251,9 @@ def _init_text_data(config):
     config.unk_token_id = tokenizer.get("unk_token_id")
     print("vocabulary size:", config.vocab_size)
 
-    rng = random.Random(int(getattr(config, "seed_sample", 0)))
+    rank = int(getattr(config, "rank", 0))
+    world_size = int(getattr(config, "world_size", 1))
+    rng = random.Random(int(getattr(config, "seed_sample", 0)) + 1000003 * rank)
     train_corpus = np.load(base / f"{config.dataset}.train.npy")
     valid_corpus = np.load(base / f"{config.dataset}.valid.npy")
     print("number of training tokens:", len(train_corpus))
@@ -313,7 +315,7 @@ def _init_rhm_data(config):
             rules=rules,
             batch_size=config.batch_size,
             num_samples=config.train_size,
-            seed=config.seed_sample,
+            seed=int(config.seed_sample) + 1000003 * int(getattr(config, "rank", 0)),
             num_classes=config.num_classes,
             online=True,
             deterministic=False,
@@ -393,7 +395,7 @@ def _init_rhm_data(config):
             rules=rules,
             batch_size=config.batch_size,
             num_samples=len(train_sequences),
-            seed=config.seed_sample,
+            seed=int(config.seed_sample) + 1000003 * int(getattr(config, "rank", 0)),
             num_classes=config.num_classes,
             sequences=train_sequences,
             online=False,
@@ -519,13 +521,14 @@ def init_model(config, seed=None):
 
 def init_training(model, config):
     """Initialise cross entropy, AdamW and the selected learning-rate schedule."""
+    raw_model = model.module if hasattr(model, "module") else model
     criterion = nn.CrossEntropyLoss(reduction="mean")
     if config.optim != "adam":
         raise ValueError("Only AdamW is implemented in this repository.")
     if config.model == "transformer_v2":
-        optimizer = model.configure_optimizers(lr=config.lr, wd=config.l2)
+        optimizer = raw_model.configure_optimizers(lr=config.lr, wd=config.l2)
     else:
-        optimizer = optim.AdamW(model.parameters(), lr=config.lr, weight_decay=config.l2)
+        optimizer = optim.AdamW(raw_model.parameters(), lr=config.lr, weight_decay=config.l2)
 
     if config.scheduler == "cosine":
         scheduler = CosineWarmupLR(

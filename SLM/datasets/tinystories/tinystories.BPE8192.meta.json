@@ -3,6 +3,6 @@
   "eos_token_id": 1,
   "unk_token_id": 0,
   "tokenizer_file": "tinystories/tinystories.BPE8192.tokenizer.json",
-  "train_size": 529209187,
-  "valid_size": 5343921
+  "train_size": 529209129,
+  "valid_size": 5343982
 }

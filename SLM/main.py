@@ -8,10 +8,13 @@ import json
 import os
 import random
 import subprocess
+from datetime import timedelta
 from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 import init
 import train
@@ -41,6 +44,13 @@ def parse_args():
         description="Training a small Transformer/Mamba language model on text or Random Hierarchy Model data"
     )
     parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--ddp", action="store_true", help="enable DistributedDataParallel; launch with torchrun")
+    parser.add_argument("--ddp_timeout_minutes", type=int, default=7200, help="DDP/NCCL collective timeout in minutes; keep large when rank 0 runs slow diagnostics")
+    parser.add_argument("--local_rank", type=int, default=None, help="DDP local rank; normally set by torchrun through LOCAL_RANK")
+    tf32_group = parser.add_mutually_exclusive_group()
+    tf32_group.add_argument("--tf32", dest="tf32", action="store_true", help="allow TF32 matmul/cuDNN on CUDA GPUs")
+    tf32_group.add_argument("--no_tf32", dest="tf32", action="store_false", help="disable TF32")
+    parser.set_defaults(tf32=True)
     parser.add_argument("--dataset", type=str, default="rhm", help="rhm or the basename of a tokenized text corpus")
     parser.add_argument("--path", type=str, default="datasets/", help="text dataset/tokenizer directory")
     parser.add_argument("--tokenizer", type=str, default=None, help="tokenizer JSON for text datasets")
@@ -156,6 +166,62 @@ def parse_args():
     return parser.parse_args()
 
 
+
+def _setup_distributed(config):
+    """Initialise single-node/multi-node DDP when requested by torchrun."""
+    env_world = int(os.environ.get("WORLD_SIZE", "1"))
+    config.ddp = bool(getattr(config, "ddp", False) or env_world > 1)
+
+    if not config.ddp:
+        config.rank = 0
+        config.local_rank = 0
+        config.world_size = 1
+        config.is_main_process = True
+        if str(config.device).startswith("cuda") and torch.cuda.is_available():
+            config.device = "cuda:0"
+        return config
+
+    if not dist.is_available():
+        raise RuntimeError("torch.distributed is not available in this PyTorch build")
+    if not dist.is_initialized():
+        backend = "nccl" if torch.cuda.is_available() and str(config.device).startswith("cuda") else "gloo"
+        dist.init_process_group(
+            backend=backend,
+            init_method="env://",
+            timeout=timedelta(minutes=int(getattr(config, "ddp_timeout_minutes", 7200))),
+        )
+
+    config.rank = dist.get_rank()
+    config.world_size = dist.get_world_size()
+    env_local = os.environ.get("LOCAL_RANK")
+    if config.local_rank is None:
+        config.local_rank = int(env_local) if env_local is not None else config.rank
+
+    if str(config.device).startswith("cuda") and torch.cuda.is_available():
+        torch.cuda.set_device(config.local_rank)
+        config.device = f"cuda:{config.local_rank}"
+    else:
+        config.device = "cpu"
+    config.is_main_process = config.rank == 0
+    return config
+
+
+def _cleanup_distributed(config):
+    if bool(getattr(config, "ddp", False)) and dist.is_available() and dist.is_initialized():
+        dist.barrier()
+        dist.destroy_process_group()
+
+
+def _configure_cuda_math(config):
+    if bool(getattr(config, "tf32", True)) and torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+        try:
+            torch.set_float32_matmul_precision("high")
+        except Exception:
+            pass
+
+
 def _prepare_config(config):
     if config.num_classes is None:
         config.num_classes = config.num_features
@@ -202,47 +268,64 @@ def _prepare_config(config):
 
 
 def run(config):
+    config = _setup_distributed(config)
+    _configure_cuda_math(config)
     config = _prepare_config(config)
     random.seed(config.seed_sample)
     np.random.seed(config.seed_sample)
     torch.manual_seed(config.seed_model)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(config.seed_model)
 
-    print("=" * 80, flush=True)
-    print(f"dataset={config.dataset} model={config.model} online={config.online}", flush=True)
-    print(f"output_dir={config.output_dir}", flush=True)
-    if config.dataset.lower() == "rhm":
+    if config.is_main_process:
+        print("=" * 80, flush=True)
         print(
-            f"RHM v={config.num_features} n={config.num_classes} m={config.num_synonyms} "
-            f"s={config.tuple_size} L={config.num_layers} d={config.num_tokens}",
+            f"distributed={config.ddp} rank={config.rank}/{config.world_size} "
+            f"local_rank={config.local_rank} device={config.device} tf32={config.tf32}",
             flush=True,
         )
-    print(
-        f"architecture depth={config.depth} d_embedding={config.d_embedding} "
-        f"n_heads={config.n_heads if config.model in {'gpt2', 'transformer_v2'} else 'n/a'}",
-        flush=True,
-    )
-    print(
-        f"log saves: validations={config.num_validations}, weights={config.num_weight_saves}; "
-        f"RHM diagnostics={config.compute_rhm_diagnostics}",
-        flush=True,
-    )
-    print("=" * 80, flush=True)
-
+        print(f"dataset={config.dataset} model={config.model} online={config.online}", flush=True)
+        print(f"output_dir={config.output_dir}", flush=True)
+        if config.dataset.lower() == "rhm":
+            print(
+                f"RHM v={config.num_features} n={config.num_classes} m={config.num_synonyms} "
+                f"s={config.tuple_size} L={config.num_layers} d={config.num_tokens}",
+                flush=True,
+            )
+        print(
+            f"architecture depth={config.depth} d_embedding={config.d_embedding} "
+            f"n_heads={config.n_heads if config.model in {'gpt2', 'transformer_v2'} else 'n/a'}",
+            flush=True,
+        )
+        print(
+            f"log saves: validations={config.num_validations}, weights={config.num_weight_saves}; "
+            f"RHM diagnostics={config.compute_rhm_diagnostics}",
+            flush=True,
+        )
+        print("=" * 80, flush=True)
     tokenizer, train_loader, val_loader, train_eval_loader, data_info = init.init_data(config)
     del tokenizer
     model = init.init_model(config)
+    if bool(getattr(config, "ddp", False)):
+        ddp_kwargs = {}
+        if str(config.device).startswith("cuda"):
+            ddp_kwargs.update(device_ids=[config.local_rank], output_device=config.local_rank)
+        model = DDP(model, **ddp_kwargs)
     criterion, optimizer, scheduler = init.init_training(model, config)
-    return train.train_model(
-        model,
-        train_loader,
-        val_loader,
-        train_eval_loader,
-        criterion,
-        optimizer,
-        scheduler,
-        config,
-        data_info,
-    )
+    try:
+        return train.train_model(
+            model,
+            train_loader,
+            val_loader,
+            train_eval_loader,
+            criterion,
+            optimizer,
+            scheduler,
+            config,
+            data_info,
+        )
+    finally:
+        _cleanup_distributed(config)
 
 
 if __name__ == "__main__":

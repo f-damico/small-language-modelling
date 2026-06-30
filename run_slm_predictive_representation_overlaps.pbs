@@ -42,7 +42,7 @@ OUTPUT_NAME="${OUTPUT_NAME:-}"                                                  
 # Predictive-overlap definition
 # -----------------------------------------------------------------------------
 
-REPRESENTATION_MODE="${REPRESENTATION_MODE:-block_update}"                              # state | block_update.
+REPRESENTATION_MODE="${REPRESENTATION_MODE:-state}"                              # state | block_update.
 REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}"                                     # auto | saved | generate. For online RHM, auto generates fixed reference samples from saved rules.
 
 SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-128}"                                   # First fixed reference subset.

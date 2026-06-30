@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N make_ts_npys
+#PBS -q workq
+#PBS -l select=1:ncpus=4:mem=64gb
+#PBS -l walltime=8:00:00
+#PBS -j oe
+#PBS -o /mnt/beegfs/2a/mb12724/franc/small-language-modelling/pbs_logs/
+
+set -eo pipefail
+
+REPO_DIR="/mnt/beegfs/2a/mb12724/franc/small-language-modelling"
+WORK_DIR="$REPO_DIR/SLM/datasets/tinystories"
+
+cd "$WORK_DIR"
+
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
+conda activate rhm
+
+python - <<'PY'
+import tokenizers
+print("tokenizers =", tokenizers.__version__)
+PY
+
+python make_tinystories_BPE8192_npys_stream.py

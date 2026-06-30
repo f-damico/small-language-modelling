@@ -1,0 +1,290 @@
+#!/bin/bash
+#PBS -N ts_ntp_ddp
+#PBS -q gpuq-longrun
+#PBS -l select=1:ncpus=32:ngpus=4:mem=128gb
+#PBS -l walltime=1000:00:00
+#PBS -j oe
+#PBS -o pbs_logs/
+
+set -eo pipefail
+
+REPO_DIR="${PBS_O_WORKDIR:-$PWD}"
+RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/SLM/main.py}"
+DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"
+RUN_NAME="${RUN_NAME:-tinystories_BPE8192_ddp}"
+
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+DEVICE="${DEVICE:-cuda}"
+
+# DDP: one process per GPU.
+NGPUS_PER_NODE="${NGPUS_PER_NODE:-4}"
+MASTER_PORT="${MASTER_PORT:-29500}"
+DDP_TIMEOUT_MINUTES="${DDP_TIMEOUT_MINUTES:-7200}"
+
+# -----------------------------------------------------------------------------
+# TinyStories dataset.
+# The repo will load:
+#   $DATASET_PATH/$DATASET.train.npy
+#   $DATASET_PATH/$DATASET.valid.npy
+#   $DATASET_PATH/$TOKENIZER
+# -----------------------------------------------------------------------------
+DATASET="${DATASET:-tinystories.BPE8192}"
+DATASET_PATH="${DATASET_PATH:-$REPO_DIR/SLM/datasets/tinystories}"
+TOKENIZER="${TOKENIZER:-tinystories.BPE8192.meta.json}"
+BLOCK_SIZE="${BLOCK_SIZE:-128}"
+
+# Architecture.
+MODEL="${MODEL:-transformer_v2}"       # gpt2, transformer_v2, or mamba
+DEPTH="${DEPTH:-12}"
+D_EMBEDDING="${D_EMBEDDING:-256}"
+N_HEADS="${N_HEADS:-4}"
+FFWD_SIZE="${FFWD_SIZE:-4}"
+ROPE="${ROPE:-false}"
+MUP="${MUP:-true}"
+EMBEDDING_SCALE="${EMBEDDING_SCALE:-0.05}"
+
+# Mamba args are harmless if MODEL is not mamba.
+D_STATE="${D_STATE:-16}"
+D_CONV="${D_CONV:-4}"
+MAMBA_EXPAND="${MAMBA_EXPAND:-2}"
+
+SEED_SAMPLE="${SEED_SAMPLE:-0}"
+SEED_MODEL="${SEED_MODEL:-0}"
+
+# Training. BATCH_SIZE is per GPU. Effective batch = BATCH_SIZE * NGPUS_PER_NODE.
+BATCH_SIZE="${BATCH_SIZE:-64}"
+EVAL_BATCH_SIZE="${EVAL_BATCH_SIZE:-64}"
+
+# For text datasets, TRAIN_SIZE and VAL_SIZE are numbers of tokens sliced from the .npy corpus.
+VAL_SIZE="${VAL_SIZE:-5343000}"
+EVAL_TRAIN_SIZE="${EVAL_TRAIN_SIZE:-16384}"
+EVAL_VAL_SIZE="${EVAL_VAL_SIZE:-16384}"
+
+MAX_STEPS="${MAX_STEPS:-1000000}"
+LR="${LR:-0.005}"
+L2="${L2:-0.001}"
+SCHEDULER="${SCHEDULER:-none}"
+DROPOUT="${DROPOUT:-0.0}"
+WARMUP_TIME="${WARMUP_TIME:-0}"
+DECAY_TIME="${DECAY_TIME:-$MAX_STEPS}"
+DECAY_FACTOR="${DECAY_FACTOR:-0.0}"
+
+PRINT_FREQ="${PRINT_FREQ:-100}"
+LOSS_THRESHOLD="${LOSS_THRESHOLD:-}"
+TF32="${TF32:-true}"
+
+# These are the important ones for CKA / predictive overlaps versus time.
+NUM_VALIDATIONS="${NUM_VALIDATIONS:-100}"
+NUM_WEIGHT_SAVES="${NUM_WEIGHT_SAVES:-100}"
+SAVE_FREQ="${SAVE_FREQ:-1000}"
+SAVE_RUN_DATA="${SAVE_RUN_DATA:-false}"
+MEASURE_TRAIN="${MEASURE_TRAIN:-true}"
+
+# No RHM diagnostics for TinyStories.
+COMPUTE_RHM_DIAGNOSTICS="false"
+
+
+
+JOB_ID="${PBS_JOBID:-no_jobid}"
+
+RUN_ID="${DATASET}_${MODEL}_DDP${NGPUS_PER_NODE}_T_${BLOCK_SIZE}_P_${TRAIN_SIZE}_seed_sample_${SEED_SAMPLE}_seed_model_${SEED_MODEL}"
+OUTPUT_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
+
+ARRAY_LOG="$REPO_DIR/pbs_logs/${RUN_NAME}_${JOB_ID}_idx_${ARRAY_INDEX}_P_${TRAIN_SIZE}.log"
+RUN_LOG="$OUTPUT_DIR/run.log"
+
+mkdir -p "$REPO_DIR/pbs_logs" "$OUTPUT_DIR"
+cd "$REPO_DIR"
+
+if command -v module >/dev/null 2>&1; then
+    module purge || true
+fi
+
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    conda activate "$CONDA_ENV_NAME"
+else
+    source activate "$CONDA_ENV_NAME"
+fi
+
+# -----------------------------------------------------------------------------
+# Dataset size.
+# For text datasets, TRAIN_SIZE is number of tokens used from train.npy.
+# Full corpus means len(train.npy)-1 because the loader asks for TRAIN_SIZE+1.
+# -----------------------------------------------------------------------------
+if [ -z "${TRAIN_SIZE_OVERRIDE:-}" ]; then
+    TRAIN_SIZE="$("$PYTHON_BIN" - <<PY
+import numpy as np
+path = "$DATASET_PATH/$DATASET.train.npy"
+x = np.load(path, mmap_mode="r")
+print(len(x) - 1)
+PY
+)"
+else
+    TRAIN_SIZE="$TRAIN_SIZE_OVERRIDE"
+fi
+
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export NCCL_ASYNC_ERROR_HANDLING=1
+export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
+export MASTER_PORT="$MASTER_PORT"
+
+{
+    echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[INFO] host=$(hostname)"
+    echo "[INFO] repo_dir=$REPO_DIR"
+    echo "[INFO] run_script=$RUN_SCRIPT"
+    echo "[INFO] output_dir=$OUTPUT_DIR"
+    echo "[INFO] dataset=$DATASET model=$MODEL"
+    echo "[INFO] dataset_path=$DATASET_PATH"
+    echo "[INFO] tokenizer=$TOKENIZER"
+    echo "[INFO] block_size=$BLOCK_SIZE"
+    echo "[INFO] train_size=$TRAIN_SIZE val_size=$VAL_SIZE max_steps=$MAX_STEPS"
+    echo "[INFO] batch_size_per_gpu=$BATCH_SIZE effective_batch_size=$((BATCH_SIZE * NGPUS_PER_NODE)) eval_batch_size=$EVAL_BATCH_SIZE"
+    echo "[INFO] ddp nproc_per_node=$NGPUS_PER_NODE master_port=$MASTER_PORT timeout_minutes=$DDP_TIMEOUT_MINUTES"
+    echo "[INFO] architecture: depth=$DEPTH d_embedding=$D_EMBEDDING n_heads=$N_HEADS"
+    echo "[INFO] num_validations=$NUM_VALIDATIONS num_weight_saves=$NUM_WEIGHT_SAVES"
+    echo "[INFO] compute_rhm_diagnostics=$COMPUTE_RHM_DIAGNOSTICS tf32=$TF32"
+    echo "[INFO] python=$(command -v "$PYTHON_BIN")"
+    "$PYTHON_BIN" --version
+
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        nvidia-smi || true
+    fi
+
+    "$PYTHON_BIN" - <<'PY' || true
+import torch
+print('torch =', torch.__version__)
+print('cuda runtime =', torch.version.cuda)
+print('cuda available =', torch.cuda.is_available())
+print('gpu count =', torch.cuda.device_count())
+for i in range(torch.cuda.device_count()):
+    print('gpu', i, '=', torch.cuda.get_device_name(i))
+PY
+} | tee -a "$ARRAY_LOG" "$RUN_LOG"
+
+if [ ! -f "$RUN_SCRIPT" ]; then
+    echo "[ERROR] Missing $RUN_SCRIPT" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+    exit 1
+fi
+
+if [ ! -f "$DATASET_PATH/$DATASET.train.npy" ]; then
+    echo "[ERROR] Missing train npy: $DATASET_PATH/$DATASET.train.npy" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+    exit 1
+fi
+
+if [ ! -f "$DATASET_PATH/$DATASET.valid.npy" ]; then
+    echo "[ERROR] Missing valid npy: $DATASET_PATH/$DATASET.valid.npy" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+    exit 1
+fi
+
+if [ ! -f "$DATASET_PATH/$TOKENIZER" ]; then
+    echo "[ERROR] Missing tokenizer/meta json: $DATASET_PATH/$TOKENIZER" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+    exit 1
+fi
+
+PY_ARGS=(
+    --ddp
+    --ddp_timeout_minutes "$DDP_TIMEOUT_MINUTES"
+    --device "$DEVICE"
+
+    --dataset "$DATASET"
+    --path "$DATASET_PATH"
+    --tokenizer "$TOKENIZER"
+    --block_size "$BLOCK_SIZE"
+
+    --model "$MODEL"
+
+    --train_size "$TRAIN_SIZE"
+    --val_size "$VAL_SIZE"
+    --batch_size "$BATCH_SIZE"
+    --eval_batch_size "$EVAL_BATCH_SIZE"
+    --eval_train_size "$EVAL_TRAIN_SIZE"
+    --eval_val_size "$EVAL_VAL_SIZE"
+
+    --max_steps "$MAX_STEPS"
+    --lr "$LR"
+    --scheduler "$SCHEDULER"
+    --warmup_time "$WARMUP_TIME"
+    --decay_time "$DECAY_TIME"
+    --decay_factor "$DECAY_FACTOR"
+    --dropout "$DROPOUT"
+    --l2 "$L2"
+
+    --print_freq "$PRINT_FREQ"
+    --num_validations "$NUM_VALIDATIONS"
+    --num_weight_saves "$NUM_WEIGHT_SAVES"
+    --save_freq "$SAVE_FREQ"
+
+    --depth "$DEPTH"
+    --d_embedding "$D_EMBEDDING"
+    --n_heads "$N_HEADS"
+    --ffwd_size "$FFWD_SIZE"
+    --embedding_scale "$EMBEDDING_SCALE"
+
+    --d_state "$D_STATE"
+    --d_conv "$D_CONV"
+    --mamba_expand "$MAMBA_EXPAND"
+
+    --seed_sample "$SEED_SAMPLE"
+    --seed_model "$SEED_MODEL"
+
+    --data_root "$DATA_ROOT"
+    --run_name "$RUN_NAME"
+    --output_dir "$OUTPUT_DIR"
+)
+
+if [[ "$TF32" == "true" || "$TF32" == "1" ]]; then
+    PY_ARGS+=(--tf32)
+else
+    PY_ARGS+=(--no_tf32)
+fi
+
+if [[ "$ROPE" == "true" || "$ROPE" == "1" ]]; then
+    PY_ARGS+=(--rope)
+fi
+
+if [[ "$MUP" == "true" || "$MUP" == "1" ]]; then
+    PY_ARGS+=(--mup)
+else
+    PY_ARGS+=(--no_mup)
+fi
+
+if [[ "$MEASURE_TRAIN" == "true" || "$MEASURE_TRAIN" == "1" ]]; then
+    PY_ARGS+=(--measure_train)
+fi
+
+if [[ "$SAVE_RUN_DATA" == "true" || "$SAVE_RUN_DATA" == "1" ]]; then
+    PY_ARGS+=(--save_run_data)
+else
+    PY_ARGS+=(--no_save_run_data)
+fi
+
+if [ -n "$LOSS_THRESHOLD" ]; then
+    PY_ARGS+=(--loss_threshold "$LOSS_THRESHOLD")
+fi
+
+CMD=(
+    "$PYTHON_BIN" -m torch.distributed.run
+    --standalone
+    --nnodes 1
+    --nproc_per_node "$NGPUS_PER_NODE"
+    --master_port "$MASTER_PORT"
+    "$RUN_SCRIPT"
+    "${PY_ARGS[@]}"
+)
+
+printf '[CMD] ' | tee -a "$ARRAY_LOG" "$RUN_LOG"
+printf '%q ' "${CMD[@]}" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+printf '\n' | tee -a "$ARRAY_LOG" "$RUN_LOG"
+
+set +e
+"${CMD[@]}" 2>&1 | tee -a "$ARRAY_LOG" "$RUN_LOG"
+STATUS=${PIPESTATUS[0]}
+set -e
+
+echo "[END] status=$STATUS time=$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$ARRAY_LOG" "$RUN_LOG"
+exit "$STATUS"
