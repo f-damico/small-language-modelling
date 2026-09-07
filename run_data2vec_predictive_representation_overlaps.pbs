@@ -1,0 +1,283 @@
+#!/bin/bash
+#PBS -N d2v_pred_overlap
+#PBS -q gpuq-longrun
+#PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
+#PBS -l walltime=1000:00:00
+#PBS -j oe
+#PBS -o pbs_logs/
+
+set -eo pipefail
+
+# =============================================================================
+# Predictive representation overlaps for data2vec/RHM checkpoints.
+#
+# Launch example:
+#   qsub -v RUN_NAME=overlap_predictive_DATA2VEC_state_v1 \
+#        run_data2vec_predictive_representation_overlaps.pbs
+#
+# RUN_NAME names ONLY this overlap computation and therefore its output directory.
+# SAVED_MODEL_RUN identifies the already-trained data2vec checkpoint folder.
+# The two names are deliberately independent. Override CHECKPOINT_DIR only when
+# the checkpoint folder is not directly under data2vec/.
+#
+# The Python script infers L,s,v,m,d_model,n_heads,n_layers,d_ff and the grammar
+# seed from the checkpoint/state-dict and checkpoint-directory name. Override
+# SEED_RULES only if the checkpoint directory does not end in _seed<number>.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Paths
+# -----------------------------------------------------------------------------
+
+REPO_DIR="${REPO_DIR:-${PBS_O_WORKDIR:-$PWD}}"
+DATA2VEC_DIR="${DATA2VEC_DIR:-$REPO_DIR/data2vec}"
+RUN_SCRIPT="${RUN_SCRIPT:-$DATA2VEC_DIR/compute_data2vec_predictive_representation_overlaps.py}"
+COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}"
+
+# -----------------------------------------------------------------------------
+# Run selection
+# -----------------------------------------------------------------------------
+
+# User-selected name of THIS overlap computation.  Results are written to
+# collected_results/<RUN_NAME>/ unless OUTPUT_NAME is explicitly overridden.
+RUN_NAME="${RUN_NAME:-overlap_predictive_DATA2VEC_state_v1}"
+
+# Name of the ALREADY TRAINED data2vec folder containing
+# data2vec_model_step*.pt. This is completely independent of RUN_NAME.
+SAVED_MODEL_RUN="${SAVED_MODEL_RUN:-online_v16_m5_L4_big_bf16_seed0}"
+
+# IMPORTANT: do not derive this path from RUN_NAME and do not use RUN_DIR as a
+# fallback. This guarantees that RUN_NAME can only affect the output folder.
+CHECKPOINT_DIR="${CHECKPOINT_DIR:-$DATA2VEC_DIR/$SAVED_MODEL_RUN}"
+
+OUTPUT_NAME="${OUTPUT_NAME:-$RUN_NAME}"
+REFERENCE_FILE="${REFERENCE_FILE:-}"
+SEED_RULES="${SEED_RULES:-}"
+
+# -----------------------------------------------------------------------------
+# Representation and readout definition
+# -----------------------------------------------------------------------------
+
+SOURCE_ENCODER="${SOURCE_ENCODER:-student}"          # student | teacher
+TARGET_ENCODER="${TARGET_ENCODER:-student}"          # student | teacher
+REPRESENTATION_MODE="${REPRESENTATION_MODE:-state}"  # state | block_update
+
+INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"
+INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}"
+INCLUDE_TEACHER_TARGET="${INCLUDE_TEACHER_TARGET:-0}"
+
+SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-128}"
+SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-2048}"
+SUBSET_SEED="${SUBSET_SEED:-12345}"
+BATCH_SIZE="${BATCH_SIZE:-128}"
+
+TAKE_EVERY="${TAKE_EVERY:-4}"
+NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"
+TARGET_INDEX="${TARGET_INDEX:--1}"
+TARGET_STEP="${TARGET_STEP:-}"
+MAX_STEP="${MAX_STEP:-}"
+
+PREDICTIVE_LAYER_MODE="${PREDICTIVE_LAYER_MODE:-same}" # same | all
+PREDICTIVE_NUM_FOLDS="${PREDICTIVE_NUM_FOLDS:-5}"
+RIDGE_ALPHAS="${RIDGE_ALPHAS:-1e-6,1e-4,1e-2,1e0,1e2,1e4,1e6}"
+PREDICTIVE_STANDARDIZE_X="${PREDICTIVE_STANDARDIZE_X:-1}"
+RIDGE_DEVICE="${RIDGE_DEVICE:-cuda}"
+RIDGE_DTYPE="${RIDGE_DTYPE:-float64}"
+
+# For an online run, samples seen at checkpoint step t are recorded as t*B.
+TRAINING_BATCH_SIZE="${TRAINING_BATCH_SIZE:-512}"
+
+TEMP_ROOT="${TEMP_ROOT:-}"
+KEEP_TEMP="${KEEP_TEMP:-0}"
+RESUME="${RESUME:-1}"
+
+# -----------------------------------------------------------------------------
+# Runtime
+# -----------------------------------------------------------------------------
+
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+DEVICE="${DEVICE:-cuda}"
+BF16="${BF16:-1}"
+
+JOB_ID="${PBS_JOBID:-no_jobid}"
+mkdir -p "$REPO_DIR/pbs_logs" "$COLLECTED_RESULTS_ROOT"
+cd "$REPO_DIR"
+JOB_LOG="$REPO_DIR/pbs_logs/data2vec_predictive_overlaps_v3_${JOB_ID}.log"
+
+if command -v module >/dev/null 2>&1; then
+    module purge || true
+fi
+
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export MKL_INTERFACE_LAYER="${MKL_INTERFACE_LAYER:-GNU}"
+export PYTHONPATH="$DATA2VEC_DIR:${PYTHONPATH:-}"
+
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    conda activate "$CONDA_ENV_NAME"
+else
+    source activate "$CONDA_ENV_NAME"
+fi
+
+set -u
+
+# Some PBS installations expose a GPU UUID rather than an integer index.
+ORIGINAL_CVD="${CUDA_VISIBLE_DEVICES:-unset}"
+if [[ "$ORIGINAL_CVD" == GPU-* ]]; then
+    GPU_INDEX="$(
+        "$PYTHON_BIN" - <<'PY'
+import os
+import subprocess
+
+uuid = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+rows = subprocess.check_output(
+    ["nvidia-smi", "--query-gpu=index,uuid", "--format=csv,noheader"],
+    text=True,
+)
+for row in rows.splitlines():
+    index, full_uuid = [item.strip() for item in row.split(",")]
+    if full_uuid == uuid or full_uuid.startswith(uuid):
+        print(index)
+        break
+PY
+    )"
+    if [ -n "$GPU_INDEX" ]; then
+        export CUDA_VISIBLE_DEVICES="$GPU_INDEX"
+    fi
+fi
+
+{
+    echo "[SCRIPT_VERSION] data2vec_predictive_overlap_pbs_v3_2026-07-23"
+    echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[INFO] host=$(hostname)"
+    echo "[INFO] repo_dir=$REPO_DIR"
+    echo "[INFO] data2vec_dir=$DATA2VEC_DIR"
+    echo "[INFO] run_script=$RUN_SCRIPT"
+    echo "[INFO] run_name=$RUN_NAME"
+    echo "[INFO] saved_model_run=$SAVED_MODEL_RUN"
+    echo "[INFO] checkpoint_dir=$CHECKPOINT_DIR"
+    echo "[INFO] output_name=$OUTPUT_NAME"
+    echo "[INFO] source_encoder=$SOURCE_ENCODER"
+    echo "[INFO] target_encoder=$TARGET_ENCODER"
+    echo "[INFO] representation_mode=$REPRESENTATION_MODE"
+    echo "[INFO] subset_train_size=$SUBSET_TRAIN_SIZE"
+    echo "[INFO] subset_valid_size=$SUBSET_VALID_SIZE"
+    echo "[INFO] take_every=$TAKE_EVERY"
+    echo "[INFO] target_step=${TARGET_STEP:-last}"
+    echo "[INFO] predictive_layer_mode=$PREDICTIVE_LAYER_MODE"
+    echo "[INFO] ridge_device=$RIDGE_DEVICE"
+    echo "[INFO] ridge_dtype=$RIDGE_DTYPE"
+    echo "[INFO] device=$DEVICE"
+    echo "[INFO] bf16=$BF16"
+    echo "[INFO] original_cuda_visible_devices=$ORIGINAL_CVD"
+    echo "[INFO] cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-unset}"
+    "$PYTHON_BIN" - <<'PY' || true
+import torch
+print("[INFO] torch=", torch.__version__)
+print("[INFO] cuda_available=", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("[INFO] gpu=", torch.cuda.get_device_name(0))
+PY
+} | tee -a "$JOB_LOG"
+
+if [ ! -f "$RUN_SCRIPT" ]; then
+    echo "[ERROR] Missing script: $RUN_SCRIPT" | tee -a "$JOB_LOG"
+    exit 1
+fi
+if [ ! -d "$DATA2VEC_DIR" ]; then
+    echo "[ERROR] Missing data2vec directory: $DATA2VEC_DIR" | tee -a "$JOB_LOG"
+    exit 1
+fi
+if [ ! -d "$CHECKPOINT_DIR" ]; then
+    echo "[ERROR] Missing checkpoint directory: $CHECKPOINT_DIR" | tee -a "$JOB_LOG"
+    echo "[HINT] RUN_NAME is only the output run name. Set SAVED_MODEL_RUN to the saved data2vec folder, or CHECKPOINT_DIR to its full path." | tee -a "$JOB_LOG"
+    exit 1
+fi
+if ! compgen -G "$CHECKPOINT_DIR/data2vec_model_step*.pt" >/dev/null; then
+    echo "[ERROR] No data2vec_model_step*.pt files in $CHECKPOINT_DIR" | tee -a "$JOB_LOG"
+    exit 1
+fi
+
+CMD=(
+    "$PYTHON_BIN" -u "$RUN_SCRIPT"
+    --repo_dir "$REPO_DIR"
+    --data2vec_dir "$DATA2VEC_DIR"
+    --run_dir "$CHECKPOINT_DIR"
+    --output_root "$COLLECTED_RESULTS_ROOT"
+    --device "$DEVICE"
+    --ridge_device "$RIDGE_DEVICE"
+    --ridge_dtype "$RIDGE_DTYPE"
+    --source_encoder "$SOURCE_ENCODER"
+    --target_encoder "$TARGET_ENCODER"
+    --representation_mode "$REPRESENTATION_MODE"
+    --subset_train_size "$SUBSET_TRAIN_SIZE"
+    --subset_valid_size "$SUBSET_VALID_SIZE"
+    --subset_seed "$SUBSET_SEED"
+    --batch_size "$BATCH_SIZE"
+    --take_every "$TAKE_EVERY"
+    --num_checkpoints "$NUM_CHECKPOINTS"
+    --target_index "$TARGET_INDEX"
+    --predictive_layer_mode "$PREDICTIVE_LAYER_MODE"
+    --predictive_num_folds "$PREDICTIVE_NUM_FOLDS"
+    --ridge_alphas "$RIDGE_ALPHAS"
+    --training_batch_size "$TRAINING_BATCH_SIZE"
+)
+
+[ -n "$OUTPUT_NAME" ] && CMD+=(--output_name "$OUTPUT_NAME")
+[ -n "$REFERENCE_FILE" ] && CMD+=(--reference_file "$REFERENCE_FILE")
+[ -n "$SEED_RULES" ] && CMD+=(--seed_rules "$SEED_RULES")
+[ -n "$TARGET_STEP" ] && CMD+=(--target_step "$TARGET_STEP")
+[ -n "$MAX_STEP" ] && CMD+=(--max_step "$MAX_STEP")
+[ -n "$TEMP_ROOT" ] && CMD+=(--temp_root "$TEMP_ROOT")
+
+case "${INCLUDE_EMBEDDING,,}" in
+    1|true|yes|y) CMD+=(--include_embedding) ;;
+    0|false|no|n) CMD+=(--no-include_embedding) ;;
+    *) echo "[ERROR] Invalid INCLUDE_EMBEDDING=$INCLUDE_EMBEDDING" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${INCLUDE_FINAL_NORM,,}" in
+    1|true|yes|y) CMD+=(--include_final_norm) ;;
+    0|false|no|n) CMD+=(--no-include_final_norm) ;;
+    *) echo "[ERROR] Invalid INCLUDE_FINAL_NORM=$INCLUDE_FINAL_NORM" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${INCLUDE_TEACHER_TARGET,,}" in
+    1|true|yes|y) CMD+=(--include_teacher_target) ;;
+    0|false|no|n) CMD+=(--no-include_teacher_target) ;;
+    *) echo "[ERROR] Invalid INCLUDE_TEACHER_TARGET=$INCLUDE_TEACHER_TARGET" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${PREDICTIVE_STANDARDIZE_X,,}" in
+    1|true|yes|y) CMD+=(--predictive_standardize_x) ;;
+    0|false|no|n) CMD+=(--no-predictive_standardize_x) ;;
+    *) echo "[ERROR] Invalid PREDICTIVE_STANDARDIZE_X=$PREDICTIVE_STANDARDIZE_X" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${BF16,,}" in
+    1|true|yes|y) CMD+=(--bf16) ;;
+    0|false|no|n) CMD+=(--no-bf16) ;;
+    *) echo "[ERROR] Invalid BF16=$BF16" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${RESUME,,}" in
+    1|true|yes|y) CMD+=(--resume) ;;
+    0|false|no|n) CMD+=(--no-resume) ;;
+    *) echo "[ERROR] Invalid RESUME=$RESUME" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+case "${KEEP_TEMP,,}" in
+    1|true|yes|y) CMD+=(--keep_temp) ;;
+    0|false|no|n) ;;
+    *) echo "[ERROR] Invalid KEEP_TEMP=$KEEP_TEMP" | tee -a "$JOB_LOG"; exit 1 ;;
+esac
+
+{
+    echo "[CMD] ${CMD[*]}"
+    echo "[RUN] launching data2vec predictive representation overlaps"
+} | tee -a "$JOB_LOG"
+
+set +e
+"${CMD[@]}" 2>&1 | tee -a "$JOB_LOG"
+RETURN_CODE=${PIPESTATUS[0]}
+set -e
+
+echo "[END] $(date '+%Y-%m-%d %H:%M:%S') return_code=$RETURN_CODE" | tee -a "$JOB_LOG"
+exit "$RETURN_CODE"
