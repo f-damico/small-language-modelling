@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N slm_overlaps
+#PBS -N slm_ntp_overlaps
 #PBS -q gpuq-longrun
 #PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
 #PBS -l walltime=1000:00:00
@@ -12,61 +12,121 @@ set -eo pipefail
 # Paths
 # =============================================================================
 
-REPO_DIR="${REPO_DIR:-${PBS_O_WORKDIR:-$PWD}}"                              # Repository root.
-SOURCE_DIR="${SOURCE_DIR:-$REPO_DIR/SLM}"                                   # Contains init.py and models/.
-RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/compute_slm_representation_overlaps.py}" # Python overlap script.
-
-DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"                                    # Contains data/<RUN_NAME>/<RUN_ID>/.
-COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}" # Output root.
-
-# =============================================================================
-# Run selection
-# =============================================================================
-
-RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"                                   # Top-level folder under data/.
-RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}" # Leaf run folder.
-RUN_DIR="${RUN_DIR:-}"                                                       # Optional leaf path; overrides RUN_NAME/RUN_ID.
-OUTPUT_NAME="${OUTPUT_NAME:-}"                                               # Folder created under collected_results/.
+REPO_DIR="${REPO_DIR:-${PBS_O_WORKDIR:-$PWD}}"
+SOURCE_DIR="${SOURCE_DIR:-$REPO_DIR/SLM}"
+RUN_SCRIPT="${RUN_SCRIPT:-$REPO_DIR/compute_slm_ntp_overlaps.py}"
+DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"
+COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}"
 
 # =============================================================================
-# Overlap options
+# Input training run + output overlap saving
+# =============================================================================
+#
+# SAVE_NAME : name of the Transformer training folder under data/.
+#             Example: slm_uniform_L4_v1
+# RUN_ID    : leaf folder identifying the particular trained run.
+# RUN_NAME  : name of THIS overlap computation; results are saved in
+#             collected_results/<RUN_NAME>/.
+# RUN_DIR   : optional explicit leaf training path. If set, it overrides
+#             SAVE_NAME/RUN_ID for locating checkpoints only.
+#
+
+SAVE_NAME="${SAVE_NAME:-slm_uniform_L3_v1}"
+RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}"
+RUN_NAME="${RUN_NAME:-ntp_overlaps}"
+RUN_DIR="${RUN_DIR:-}"
+
+# =============================================================================
+# Choose ONE overlap definition
+# =============================================================================
+#
+# weights             : existing cosine weight overlap
+# cka                 : CKA of residual-stream states h_l
+# block_update_cka    : CKA of literal block writes h_l-h_{l-1}
+# low_rank            : finite-rank sample-space subspace overlap
+# novelty             : CKA of h_l minus the train-fitted linear prediction from h_{l-1}
+# task                : CKA of the train-fitted next-token-predictive representation H W
+#
+OVERLAP_DEFINITION="${OVERLAP_DEFINITION:-cka}"
+
+# =============================================================================
+# Common checkpoint/reference parameters
 # =============================================================================
 
-OVERLAP_TARGET="${OVERLAP_TARGET:-representations}"                         # representations | weights
-METRIC="${METRIC:-gram}"                                                    # gram | feature
-REPRESENTATION_MODE="${REPRESENTATION_MODE:-block_update}"                  # state | block_update
-REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}"                                # auto | saved | generate
+REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}"   # auto | saved | generate (RHM only).
+SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-512}" # Used to fit novelty/task maps.
+SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-512}" # Held-out overlap evaluation set.
+SUBSET_SEED="${SUBSET_SEED:-12345}"
+BATCH_SIZE="${BATCH_SIZE:-256}"               # Transformer forward batch size.
 
-SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-512}"                               # Fixed train sequences for CKA.
-SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-512}"                               # Fixed validation sequences for CKA.
-SUBSET_SEED="${SUBSET_SEED:-12345}"                                         # Fixed subset/generation seed.
-BATCH_SIZE="${BATCH_SIZE:-256}"                                             # Representation forward batch size.
+NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"       # 0 = every checkpoint; >0 = log-spaced subset.
+MAX_STEP="${MAX_STEP:-}"                      # Optional maximum checkpoint step.
 
-NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"                                     # 0 means every checkpoint.
-MAX_STEP="${MAX_STEP:-}"                                                     # Optional largest checkpoint step.
+INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"  # cka / low_rank / task.
+INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}" # cka / low_rank / task.
 
-INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"                                 # State mode only.
-INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}"                               # State mode only.
+TEMP_ROOT="${TEMP_ROOT:-}"                    # Optional scratch directory.
+KEEP_TEMP="${KEEP_TEMP:-0}"                   # 1 keeps temporary representations/matrices.
 
-TEMP_ROOT="${TEMP_ROOT:-}"                                                   # Optional scratch root.
-KEEP_TEMP="${KEEP_TEMP:-0}"                                                 # 1 keeps temporary CKA matrices.
+# =============================================================================
+# CASE: cka or block_update_cka
+# =============================================================================
+
+CKA_METRIC="${CKA_METRIC:-gram}"              # gram | feature
+
+# =============================================================================
+# CASE: low_rank
+# =============================================================================
+# q_r(t,t') = ||Q_r(t)^T Q_r(t')||_F^2 / r on the held-out validation set.
+# The randomized SVD is only an extraction step; no learned readout is fitted.
+
+LOW_RANK_RANK="${LOW_RANK_RANK:-8}"
+LOW_RANK_OVERSAMPLE="${LOW_RANK_OVERSAMPLE:-8}"
+LOW_RANK_POWER_ITERS="${LOW_RANK_POWER_ITERS:-1}"
+LOW_RANK_POSITION_CHUNK="${LOW_RANK_POSITION_CHUNK:-8}"
+
+# =============================================================================
+# CASE: novelty
+# =============================================================================
+# For each checkpoint t and block l, ONE A_l(t) is fitted on the training
+# reference, pooling all token positions:
+#     h_l ~= mean_y + (h_{l-1}-mean_x) A_l(t)
+# The held-out residual is then compared by Gram CKA across checkpoints.
+# The ridge objective uses mean MSE + alpha * ||A||_F^2.
+
+NOVELTY_RIDGE_ALPHA="${NOVELTY_RIDGE_ALPHA:-1e-4}"
+
+# =============================================================================
+# CASE: task
+# =============================================================================
+# For each checkpoint t and representation layer l, ONE W_l(t) is fitted on the
+# training reference, pooling all token positions, to predict x_{i+1} from h_i.
+# Validation CKA is computed in task-output space without materialising the full
+# [samples,vocab] output at every position.
+# The ridge objective uses mean MSE + alpha * ||W||_F^2.
+
+TASK_RIDGE_ALPHA="${TASK_RIDGE_ALPHA:-1e-4}"
+
+# =============================================================================
+# Shared numerical parameters for low_rank / novelty / task
+# =============================================================================
+
+LINEAR_FIT_DEVICE="${LINEAR_FIT_DEVICE:-cuda}" # cuda | cpu | auto
+LINEAR_FIT_DTYPE="${LINEAR_FIT_DTYPE:-float64}" # float64 | float32
+LINEAR_FIT_CHUNK_ROWS="${LINEAR_FIT_CHUNK_ROWS:-65536}"
 
 # =============================================================================
 # Runtime
 # =============================================================================
 
-CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"                                     # Conda environment.
-PYTHON_BIN="${PYTHON_BIN:-python}"                                          # Python executable.
-DEVICE="${DEVICE:-cuda}"                                                    # cuda | cpu
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-rhm}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+DEVICE="${DEVICE:-cuda}"
 
 JOB_ID="${PBS_JOBID:-no_jobid}"
-
-mkdir -p "$REPO_DIR/pbs_logs"
-mkdir -p "$COLLECTED_RESULTS_ROOT"
-
+mkdir -p "$REPO_DIR/pbs_logs" "$COLLECTED_RESULTS_ROOT"
 cd "$REPO_DIR"
-
-JOB_LOG="$REPO_DIR/pbs_logs/slm_overlaps_${JOB_ID}.log"
+JOB_LOG="$REPO_DIR/pbs_logs/slm_ntp_overlaps_${JOB_ID}.log"
 
 if command -v module >/dev/null 2>&1; then
     module purge || true
@@ -86,44 +146,24 @@ fi
 
 set -u
 
-# Some PBS systems expose a GPU UUID instead of a numeric CUDA index.
+# Some PBS installations expose a UUID rather than a numeric CUDA index.
 ORIGINAL_CVD="${CUDA_VISIBLE_DEVICES:-unset}"
-
 if [[ "$ORIGINAL_CVD" == GPU-* ]]; then
     GPU_INDEX="$(
         "$PYTHON_BIN" - <<'PY'
-import os
-import subprocess
-
-uuid = os.environ.get(
-    "CUDA_VISIBLE_DEVICES",
-    "",
-).strip()
-
+import os, subprocess
+uuid = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
 rows = subprocess.check_output(
-    [
-        "nvidia-smi",
-        "--query-gpu=index,uuid",
-        "--format=csv,noheader",
-    ],
+    ["nvidia-smi", "--query-gpu=index,uuid", "--format=csv,noheader"],
     text=True,
 )
-
 for row in rows.splitlines():
-    index, full_uuid = [
-        item.strip()
-        for item in row.split(",")
-    ]
-
-    if (
-        full_uuid == uuid
-        or full_uuid.startswith(uuid)
-    ):
+    index, full_uuid = [item.strip() for item in row.split(",")]
+    if full_uuid == uuid or full_uuid.startswith(uuid):
         print(index)
         break
 PY
     )"
-
     if [ -n "$GPU_INDEX" ]; then
         export CUDA_VISIBLE_DEVICES="$GPU_INDEX"
     fi
@@ -132,8 +172,22 @@ fi
 if [ -n "$RUN_DIR" ]; then
     RESOLVED_RUN_DIR="$RUN_DIR"
 else
-    RESOLVED_RUN_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
+    RESOLVED_RUN_DIR="$DATA_ROOT/$SAVE_NAME/$RUN_ID"
 fi
+
+bool_arg() {
+    local value="${1,,}"
+    local yes_flag="$2"
+    local no_flag="$3"
+    case "$value" in
+        1|true|yes|y|on) printf '%s' "$yes_flag" ;;
+        0|false|no|n|off) printf '%s' "$no_flag" ;;
+        *)
+            echo "[ERROR] invalid boolean value: $1" >&2
+            return 2
+            ;;
+    esac
+}
 
 {
     echo "[START] $(date '+%Y-%m-%d %H:%M:%S')"
@@ -141,210 +195,148 @@ fi
     echo "[INFO] repo_dir=$REPO_DIR"
     echo "[INFO] source_dir=$SOURCE_DIR"
     echo "[INFO] run_script=$RUN_SCRIPT"
-    echo "[INFO] data_root=$DATA_ROOT"
-    echo "[INFO] collected_results_root=$COLLECTED_RESULTS_ROOT"
-
-    echo "[INFO] run_name=$RUN_NAME"
+    echo "[INFO] save_name=$SAVE_NAME"
     echo "[INFO] run_id=$RUN_ID"
-    echo "[INFO] run_dir_override=${RUN_DIR:-unset}"
+    echo "[INFO] run_name(overlap_output)=$RUN_NAME"
     echo "[INFO] resolved_run_dir=$RESOLVED_RUN_DIR"
-    echo "[INFO] output_name=${OUTPUT_NAME:-auto}"
-
-    echo "[INFO] overlap_target=$OVERLAP_TARGET"
-    echo "[INFO] metric=$METRIC"
-    echo "[INFO] representation_mode=$REPRESENTATION_MODE"
-    echo "[INFO] reference_source=$REFERENCE_SOURCE"
-
-    echo "[INFO] subset_train_size=$SUBSET_TRAIN_SIZE"
-    echo "[INFO] subset_valid_size=$SUBSET_VALID_SIZE"
-    echo "[INFO] subset_seed=$SUBSET_SEED"
+    echo "[INFO] output_dir=$COLLECTED_RESULTS_ROOT/$RUN_NAME"
+    echo "[INFO] overlap_definition=$OVERLAP_DEFINITION"
+    echo "[INFO] checkpoints: num=$NUM_CHECKPOINTS max_step=${MAX_STEP:-none}"
+    echo "[INFO] references: train=$SUBSET_TRAIN_SIZE valid=$SUBSET_VALID_SIZE seed=$SUBSET_SEED source=$REFERENCE_SOURCE"
     echo "[INFO] batch_size=$BATCH_SIZE"
-
-    echo "[INFO] num_checkpoints=$NUM_CHECKPOINTS"
-    echo "[INFO] max_step=${MAX_STEP:-none}"
-
-    echo "[INFO] include_embedding=$INCLUDE_EMBEDDING"
-    echo "[INFO] include_final_norm=$INCLUDE_FINAL_NORM"
-    echo "[INFO] temp_root=${TEMP_ROOT:-output_directory}"
-    echo "[INFO] keep_temp=$KEEP_TEMP"
-
-    echo "[INFO] device=$DEVICE"
-    echo "[INFO] conda_env=$CONDA_ENV_NAME"
+    echo "[INFO] cka_metric=$CKA_METRIC"
+    echo "[INFO] low_rank: rank=$LOW_RANK_RANK oversample=$LOW_RANK_OVERSAMPLE power_iters=$LOW_RANK_POWER_ITERS position_chunk=$LOW_RANK_POSITION_CHUNK"
+    echo "[INFO] novelty_ridge_alpha=$NOVELTY_RIDGE_ALPHA"
+    echo "[INFO] task_ridge_alpha=$TASK_RIDGE_ALPHA"
+    echo "[INFO] linear_fit: device=$LINEAR_FIT_DEVICE dtype=$LINEAR_FIT_DTYPE chunk_rows=$LINEAR_FIT_CHUNK_ROWS"
+    echo "[INFO] model device=$DEVICE"
     echo "[INFO] original_cuda_visible_devices=$ORIGINAL_CVD"
     echo "[INFO] cuda_visible_devices=${CUDA_VISIBLE_DEVICES:-unset}"
-
     "$PYTHON_BIN" - <<'PY' || true
 import torch
-
-print(
-    "[INFO] torch=",
-    torch.__version__,
-)
-
-print(
-    "[INFO] cuda_available=",
-    torch.cuda.is_available(),
-)
-
+print("[INFO] torch=", torch.__version__)
+print("[INFO] cuda_available=", torch.cuda.is_available())
 if torch.cuda.is_available():
-    print(
-        "[INFO] gpu=",
-        torch.cuda.get_device_name(0),
-    )
+    print("[INFO] gpu=", torch.cuda.get_device_name(0))
 PY
-
 } | tee -a "$JOB_LOG"
 
 if [ ! -f "$RUN_SCRIPT" ]; then
-    echo "[ERROR] Missing overlap script: $RUN_SCRIPT" |
-        tee -a "$JOB_LOG"
+    echo "[ERROR] Missing overlap script: $RUN_SCRIPT" | tee -a "$JOB_LOG"
     exit 1
 fi
-
+if [ ! -f "$REPO_DIR/compute_slm_representation_overlaps.py" ]; then
+    echo "[ERROR] Missing reused base script: $REPO_DIR/compute_slm_representation_overlaps.py" | tee -a "$JOB_LOG"
+    exit 1
+fi
 if [ ! -d "$SOURCE_DIR" ]; then
-    echo "[ERROR] Missing source directory: $SOURCE_DIR" |
-        tee -a "$JOB_LOG"
+    echo "[ERROR] Missing source directory: $SOURCE_DIR" | tee -a "$JOB_LOG"
     exit 1
 fi
-
-if [ ! -d "$RESOLVED_RUN_DIR" ]; then
-    echo "[ERROR] Missing run directory: $RESOLVED_RUN_DIR" |
-        tee -a "$JOB_LOG"
-    exit 1
-fi
-
 if [ ! -d "$RESOLVED_RUN_DIR/checkpoints" ]; then
-    echo "[ERROR] Missing checkpoint directory: $RESOLVED_RUN_DIR/checkpoints" |
-        tee -a "$JOB_LOG"
+    echo "[ERROR] Missing checkpoint directory: $RESOLVED_RUN_DIR/checkpoints" | tee -a "$JOB_LOG"
     exit 1
 fi
+
+case "$OVERLAP_DEFINITION" in
+    weights|cka|block_update_cka|low_rank|novelty|task) ;;
+    *)
+        echo "[ERROR] Unknown OVERLAP_DEFINITION=$OVERLAP_DEFINITION" | tee -a "$JOB_LOG"
+        exit 1
+        ;;
+esac
 
 # =============================================================================
-# Build Python command
+# Build one command. Only parameters relevant to the selected case are added.
 # =============================================================================
 
 CMD=(
     "$PYTHON_BIN" -u "$RUN_SCRIPT"
-
     --repo_dir "$REPO_DIR"
     --source_dir "$SOURCE_DIR"
-
     --data_root "$DATA_ROOT"
     --collected_results_root "$COLLECTED_RESULTS_ROOT"
-
     --device "$DEVICE"
-
-    --overlap_target "$OVERLAP_TARGET"
-    --metric "$METRIC"
-    --representation_mode "$REPRESENTATION_MODE"
+    --overlap_definition "$OVERLAP_DEFINITION"
     --reference_source "$REFERENCE_SOURCE"
-
     --subset_train_size "$SUBSET_TRAIN_SIZE"
     --subset_valid_size "$SUBSET_VALID_SIZE"
     --subset_seed "$SUBSET_SEED"
     --batch_size "$BATCH_SIZE"
-
     --num_checkpoints "$NUM_CHECKPOINTS"
 )
 
 if [ -n "$RUN_DIR" ]; then
-    CMD+=(
-        --run_dir "$RUN_DIR"
-    )
+    CMD+=(--run_dir "$RUN_DIR")
 else
-    CMD+=(
-        --run_name "$RUN_NAME"
-        --run_id "$RUN_ID"
-    )
+    CMD+=(--run_name "$SAVE_NAME" --run_id "$RUN_ID")
 fi
-
-if [ -n "$OUTPUT_NAME" ]; then
-    CMD+=(
-        --output_name "$OUTPUT_NAME"
-    )
-fi
-
+CMD+=(--output_name "$RUN_NAME")
 if [ -n "$MAX_STEP" ]; then
-    CMD+=(
-        --max_step "$MAX_STEP"
-    )
+    CMD+=(--max_step "$MAX_STEP")
 fi
-
 if [ -n "$TEMP_ROOT" ]; then
-    CMD+=(
-        --temp_root "$TEMP_ROOT"
-    )
+    CMD+=(--temp_root "$TEMP_ROOT")
 fi
 
-case "${INCLUDE_EMBEDDING,,}" in
-    1|true|yes|y)
+CMD+=("$(bool_arg "$KEEP_TEMP" --keep_temp --no-keep_temp)")
+
+case "$OVERLAP_DEFINITION" in
+    cka)
         CMD+=(
-            --include_embedding
+            --cka_metric "$CKA_METRIC"
+            "$(bool_arg "$INCLUDE_EMBEDDING" --include_embedding --no-include_embedding)"
+            "$(bool_arg "$INCLUDE_FINAL_NORM" --include_final_norm --no-include_final_norm)"
         )
         ;;
 
-    0|false|no|n)
+    block_update_cka)
+        CMD+=(--cka_metric "$CKA_METRIC")
+        ;;
+
+    low_rank)
         CMD+=(
-            --no_include_embedding
+            --low_rank_rank "$LOW_RANK_RANK"
+            --low_rank_oversample "$LOW_RANK_OVERSAMPLE"
+            --low_rank_power_iters "$LOW_RANK_POWER_ITERS"
+            --low_rank_position_chunk "$LOW_RANK_POSITION_CHUNK"
+            --linear_fit_device "$LINEAR_FIT_DEVICE"
+            "$(bool_arg "$INCLUDE_EMBEDDING" --include_embedding --no-include_embedding)"
+            "$(bool_arg "$INCLUDE_FINAL_NORM" --include_final_norm --no-include_final_norm)"
         )
         ;;
 
-    *)
-        echo "[ERROR] Invalid INCLUDE_EMBEDDING=$INCLUDE_EMBEDDING" |
-            tee -a "$JOB_LOG"
-        exit 1
-        ;;
-esac
-
-case "${INCLUDE_FINAL_NORM,,}" in
-    1|true|yes|y)
+    novelty)
         CMD+=(
-            --include_final_norm
+            --novelty_ridge_alpha "$NOVELTY_RIDGE_ALPHA"
+            --linear_fit_device "$LINEAR_FIT_DEVICE"
+            --linear_fit_dtype "$LINEAR_FIT_DTYPE"
+            --linear_fit_chunk_rows "$LINEAR_FIT_CHUNK_ROWS"
         )
         ;;
 
-    0|false|no|n)
+    task)
         CMD+=(
-            --no_include_final_norm
+            --task_ridge_alpha "$TASK_RIDGE_ALPHA"
+            --linear_fit_device "$LINEAR_FIT_DEVICE"
+            --linear_fit_dtype "$LINEAR_FIT_DTYPE"
+            --linear_fit_chunk_rows "$LINEAR_FIT_CHUNK_ROWS"
+            "$(bool_arg "$INCLUDE_EMBEDDING" --include_embedding --no-include_embedding)"
+            "$(bool_arg "$INCLUDE_FINAL_NORM" --include_final_norm --no-include_final_norm)"
         )
         ;;
 
-    *)
-        echo "[ERROR] Invalid INCLUDE_FINAL_NORM=$INCLUDE_FINAL_NORM" |
-            tee -a "$JOB_LOG"
-        exit 1
-        ;;
-esac
-
-case "${KEEP_TEMP,,}" in
-    1|true|yes|y)
-        CMD+=(
-            --keep_temp
-        )
-        ;;
-
-    0|false|no|n)
-        ;;
-
-    *)
-        echo "[ERROR] Invalid KEEP_TEMP=$KEEP_TEMP" |
-            tee -a "$JOB_LOG"
-        exit 1
+    weights)
         ;;
 esac
 
 {
     echo "[CMD] ${CMD[*]}"
-    echo "[RUN] launching overlap computation"
+    echo "[RUN] launching NTP overlap computation"
 } | tee -a "$JOB_LOG"
 
-"${CMD[@]}" 2>&1 |
-    tee -a "$JOB_LOG"
-
+"${CMD[@]}" 2>&1 | tee -a "$JOB_LOG"
 RETURN_CODE=${PIPESTATUS[0]}
 
-echo \
-    "[END] $(date '+%Y-%m-%d %H:%M:%S') return_code=$RETURN_CODE" |
-    tee -a "$JOB_LOG"
-
+echo "[END] $(date '+%Y-%m-%d %H:%M:%S') return_code=$RETURN_CODE" | tee -a "$JOB_LOG"
 exit "$RETURN_CODE"
