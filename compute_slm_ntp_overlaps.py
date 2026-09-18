@@ -11,6 +11,7 @@ checkpoint-to-checkpoint representation overlaps:
     low_rank            finite-rank sample-space subspace overlap
     novelty             CKA of layer novelty after regressing h_l on h_{l-1}
     task                CKA of linearly next-token-predictive representations
+    stage1              matched probe, rank, novelty and RHM loss diagnostics
 
 The new learned maps are fitted once per checkpoint and layer, pooling all token
 positions of a fixed *training* reference set, and are evaluated only on a
@@ -57,6 +58,7 @@ import compute_slm_representation_overlaps as base
 EPS = 1e-12
 NEW_METHODS = {"low_rank", "novelty", "task"}
 ALL_DEFINITIONS = (
+    "stage1",
     "weights",
     "cka",
     "block_update_cka",
@@ -418,6 +420,25 @@ def store_state_checkpoint(
         include_final_norm,
     )
 
+    if getattr(cli, "overlap_definition", None) == "stage1":
+        grouped = {}
+        for name, parameter in model.named_parameters():
+            group, _, _ = base.classify_parameter(name, model_architecture)
+            grouped.setdefault(group, []).append(parameter.detach().cpu().reshape(-1))
+        values = {name: torch.cat(parts).double().numpy() for name, parts in grouped.items()}
+        ref_path = temp_dir / 'stage1_weight_reference.npz'
+        if not ref_path.exists():
+            np.savez(ref_path, **values)
+        stats = {}
+        with np.load(ref_path, allow_pickle=False) as ref:
+            for name, value in values.items():
+                old = ref[name]
+                norm, oldnorm = np.linalg.norm(value), np.linalg.norm(old)
+                stats[name] = np.array([
+                    np.dot(value, old) / (norm*oldnorm) if norm*oldnorm>EPS else np.nan,
+                    norm, np.linalg.norm(value-old) / oldnorm if oldnorm>EPS else np.nan])
+        np.savez(temp_dir / f'stage1_weights_{checkpoint_index}.npz', **stats)
+
     for split, reference in references.items():
         loader = DataLoader(
             TensorDataset(reference),
@@ -428,6 +449,7 @@ def store_state_checkpoint(
         )
         writers: Optional[List[np.memmap]] = None
         offset = 0
+        logits_writer = None
 
         for (batch,) in loader:
             reps = base.forward_representations(
@@ -437,6 +459,15 @@ def store_state_checkpoint(
                 include_embedding,
                 include_final_norm,
             )
+            if getattr(cli, "overlap_definition", None) == "stage1" and split == "valid":
+                if not include_final_norm:
+                    raise ValueError("Stage 1 requires final_norm for logits.")
+                logits = model.lm_head(reps[-1].to(cli.device)).detach().float().cpu().numpy()
+                if logits_writer is None:
+                    logits_writer = open_memmap(temp_dir / f"stage1_logits_{checkpoint_index}.npy",
+                        mode="w+", dtype=np.float32,
+                        shape=(len(reference), logits.shape[1], logits.shape[2]))
+                logits_writer[offset:offset+len(batch)] = logits
             if writers is None:
                 writers = []
                 for layer_index, rep in enumerate(reps):
@@ -467,6 +498,9 @@ def store_state_checkpoint(
         for writer in writers:
             writer.flush()
         del writers
+        if logits_writer is not None:
+            logits_writer.flush()
+            del logits_writer
 
     del model
     cleanup_cuda()
@@ -737,6 +771,7 @@ def fit_task_probe(
     device: torch.device,
     dtype_name: str,
     chunk_rows: int,
+    return_statistics: bool = False,
 ) -> torch.Tensor:
     """Fit centered ridge from hidden states to one-hot next-token labels.
 
@@ -782,6 +817,8 @@ def fit_task_probe(
     cov_x = 0.5 * (cov_x + cov_x.T)
     class_freq = counts / float(n)
     cov_xy = class_sums / float(n) - mean_x[:, None] * class_freq[None, :]
+    if return_statistics:
+        return mean_x, class_freq, cov_x, cov_xy
     system = cov_x + float(alpha) * torch.eye(d, dtype=dtype, device=device)
     try:
         weights = torch.linalg.solve(system, cov_xy)
@@ -857,7 +894,7 @@ def compute_novelty(
     valid_reference: torch.Tensor,
     cli: argparse.Namespace,
     temp_dir: Path,
-) -> Tuple[np.ndarray, List[str], List[Dict[str, Any]], str, np.ndarray]:
+) -> Tuple[np.ndarray, List[str], List[Dict[str, Any]], str, np.ndarray, Dict[str, np.ndarray]]:
     fit_dev = fit_device(cli)
     layer_names_ref: Optional[List[str]] = None
     metadata_list: List[Dict[str, Any]] = []
@@ -866,8 +903,26 @@ def compute_novelty(
     energy_fraction = np.full(
         (len(checkpoints), int(getattr(config, "depth"))), np.nan, dtype=np.float64
     )
-
-    for checkpoint_index, checkpoint in enumerate(checkpoints):
+    # Final selected checkpoint is evaluated first, but output time order is unchanged.
+    reference_index = len(checkpoints) - 1
+    metadata_list = [None] * len(checkpoints)
+    dynamics = {
+        "novelty_dynamics_reference_index": np.asarray(reference_index),
+        "novelty_dynamics_axes": np.asarray("time,block,position; map_relative_change: time,block"),
+        "novelty_dynamics_definition": np.asarray(
+            "f_t(x)=(x-mean_x_t)@A_t+mean_y_t; reference *=last selected checkpoint; "
+            "prediction_change=mean||f_t(x_t)-f_*(x_*)||^2; "
+            "fixed_input_change=mean||f_t(x_*)-f_*(x_*)||^2; "
+            "prediction_cka=position-centered CKA(f_t(x_t),f_*(x_*)); "
+            "map_relative_change=||A_t-A_*||_F^2/||A_*||_F^2; "
+            "residual_mse=mean||y_t-f_t(x_t)||^2; "
+            "target energies=mean||y-mean(y)||^2; all evaluation means over held-out samples; "
+            "raw coordinates, no alignment; fixed and own-input changes are not additive."),
+    }
+    reference_dir = temp_dir / "novelty_predictor_reference"
+    reference_dir.mkdir(exist_ok=True)
+    for checkpoint_index in [reference_index] + list(range(reference_index)):
+        checkpoint = checkpoints[checkpoint_index]
         print(
             f"[INFO] novelty checkpoint {checkpoint_index + 1}/{len(checkpoints)} "
             f"{checkpoint.name}",
@@ -901,9 +956,14 @@ def compute_novelty(
             energy_fraction = np.full(
                 (len(checkpoints), len(novelty_names)), np.nan, dtype=np.float64
             )
+            for key in ("prediction_change", "fixed_input_change", "prediction_cka",
+                        "reference_target_energy", "target_energy", "residual_mse"):
+                dynamics["novelty_" + key] = np.full(
+                    (len(checkpoints), len(novelty_names), n_positions), np.nan)
+            dynamics["novelty_map_relative_change"] = np.full(energy_fraction.shape, np.nan)
         elif novelty_names != layer_names_ref or arch != architecture_ref:
             raise RuntimeError("Novelty representation layout changed between checkpoints.")
-        metadata_list.append(metadata)
+        metadata_list[checkpoint_index] = metadata
 
         for novelty_layer in range(len(novelty_names)):
             x_train = np.load(
@@ -932,6 +992,20 @@ def compute_novelty(
                 state_path(temp_dir, "valid", checkpoint_index, novelty_layer + 1),
                 mmap_mode="r",
             )
+            map_path = reference_dir / f"map_{novelty_layer}.npz"
+            if checkpoint_index == reference_index:
+                np.savez(map_path, weights=weights.detach().cpu().numpy(),
+                         mean_x=mean_x.detach().cpu().numpy(), mean_y=mean_y.detach().cpu().numpy())
+                np.save(reference_dir / f"input_{novelty_layer}.npy", x_valid)
+                np.save(reference_dir / f"target_{novelty_layer}.npy", y_valid)
+            with np.load(map_path) as ref:
+                rw, rxm, rym = [torch.as_tensor(ref[k], device=fit_dev, dtype=weights.dtype)
+                                for k in ("weights", "mean_x", "mean_y")]
+            ref_x = np.load(reference_dir / f"input_{novelty_layer}.npy", mmap_mode="r")
+            ref_y = np.load(reference_dir / f"target_{novelty_layer}.npy", mmap_mode="r")
+            map_den = float(rw.square().sum())
+            dynamics["novelty_map_relative_change"][checkpoint_index, novelty_layer] = (
+                float((weights-rw).square().sum()) / map_den if map_den > EPS else np.nan)
             residual_sq = 0.0
             target_sq = 0.0
             for position in range(n_positions):
@@ -946,6 +1020,25 @@ def compute_novelty(
                     device=fit_dev,
                 )
                 residual = (y - mean_y) - (x - mean_x) @ weights
+                # Same held-out sequences, no extra fitting or model forwards.
+                xr = torch.as_tensor(np.array(ref_x[:, position]), device=fit_dev, dtype=weights.dtype)
+                yr = torch.as_tensor(np.array(ref_y[:, position]), device=fit_dev, dtype=weights.dtype)
+                predicted = y - residual
+                reference_prediction = (xr-rxm) @ rw + rym
+                fixed_prediction = (xr-mean_x) @ weights + mean_y
+                idx = (checkpoint_index, novelty_layer, position)
+                values = {
+                    "prediction_change": (predicted-reference_prediction).square().sum(-1).mean(),
+                    "fixed_input_change": (fixed_prediction-reference_prediction).square().sum(-1).mean(),
+                    "reference_target_energy": (yr-yr.mean(0)).square().sum(-1).mean(),
+                    "target_energy": (y-y.mean(0)).square().sum(-1).mean(),
+                    "residual_mse": residual.square().sum(-1).mean(),
+                    "prediction_cka": _stage1_cka(predicted.double()[None],
+                                                  reference_prediction.double()[None])[0],
+                }
+                for key, value in values.items():
+                    dynamics["novelty_" + key][idx] = float(value)
+                del xr, yr, predicted, reference_prediction, fixed_prediction, values
                 residual_np = residual.detach().float().cpu().numpy()
                 residual_np = residual_np - residual_np.mean(axis=0, keepdims=True)
                 gram = residual_np @ residual_np.T
@@ -969,7 +1062,7 @@ def compute_novelty(
             energy_fraction[checkpoint_index, novelty_layer] = (
                 residual_sq / target_sq if target_sq > EPS else np.nan
             )
-            del x_valid, y_valid, mean_x, mean_y, weights
+            del x_valid, y_valid, mean_x, mean_y, weights, ref_x, ref_y, rw, rxm, rym
             cleanup_cuda()
 
         remove_checkpoint_states(temp_dir, checkpoint_index)
@@ -984,7 +1077,7 @@ def compute_novelty(
         len(layer_names_ref),
         n_positions,
     )
-    return overlap, layer_names_ref, metadata_list, architecture_ref, energy_fraction
+    return overlap, layer_names_ref, metadata_list, architecture_ref, energy_fraction, dynamics
 
 
 # =============================================================================
@@ -1113,6 +1206,7 @@ def save_new_overlap(
     reference_metadata: Mapping[str, Any],
     cli: argparse.Namespace,
     novelty_energy_fraction: Optional[np.ndarray] = None,
+    novelty_dynamics: Optional[Mapping[str, np.ndarray]] = None,
 ) -> Path:
     arrays = base.common_arrays(
         checkpoints,
@@ -1172,6 +1266,8 @@ def save_new_overlap(
         )
         if novelty_energy_fraction is not None:
             arrays["novelty_valid_residual_energy_fraction"] = novelty_energy_fraction
+        if novelty_dynamics is not None:
+            arrays.update(novelty_dynamics)
         filename = "novelty_overlaps.npz"
     elif definition == "task":
         arrays.update(
@@ -1234,6 +1330,284 @@ def save_new_overlap(
 # =============================================================================
 
 
+# =============================================================================
+# Stage 1: matched, inexpensive checkpoint diagnostics (one reference, no T^2)
+# =============================================================================
+
+
+def _stage1_cka(x, y):
+    """Position-wise CKA; zero-variance representations are undefined, not 1."""
+    x = x - x.mean(dim=1, keepdim=True)
+    y = y - y.mean(dim=1, keepdim=True)
+    xx, yy = x @ x.transpose(1, 2), y @ y.transpose(1, 2)
+    den = torch.linalg.vector_norm(xx, dim=(1, 2)) * torch.linalg.vector_norm(yy, dim=(1, 2))
+    value = (xx * yy).sum(dim=(1, 2)) / den.clamp_min(1e-300)
+    return torch.where(den > 1e-24, value.clamp(0, 1), torch.full_like(value, float('nan')))
+
+
+def _stage1_spectrum(h, ranks, rtol):
+    """Exact small SVD on [position,sample,feature], rank-aware subspaces."""
+    h = h - h.mean(dim=1, keepdim=True)
+    u, s, _ = torch.linalg.svd(h, full_matrices=False)
+    energy = s.square()
+    total = energy.sum(-1)
+    supported = (s > rtol * s[:, :1]).sum(-1)
+    supported = torch.where(total > 1e-24, supported, torch.zeros_like(supported))
+    cumulative = energy.cumsum(-1) / total[:, None].clamp_min(1e-300)
+    captured, gap, relative = [], [], []
+    for r in ranks:
+        if r <= s.shape[-1]:
+            captured.append(cumulative[:, r-1])
+            relative.append(s[:, r-1] / s[:, 0].clamp_min(1e-300))
+            next_s = s[:, r] if r < s.shape[-1] else torch.zeros_like(s[:, 0])
+            gap.append((s[:, r-1] - next_s) / s[:, 0].clamp_min(1e-300))
+        else:
+            nan = torch.full_like(total, float('nan'))
+            captured.append(nan); gap.append(nan); relative.append(nan)
+    return u, s, supported, torch.stack(captured, -1), torch.stack(gap, -1), torch.stack(relative, -1)
+
+
+def _stage1_loss(logits, targets, masks=None):
+    """All quantities on exactly the same held-out tokens, in float64."""
+    z = torch.as_tensor(np.array(logits, copy=True), dtype=torch.float64)
+    y = torch.as_tensor(targets, dtype=torch.long)
+    lp = z.log_softmax(-1)
+    true_lp = lp.gather(-1, y[..., None]).squeeze(-1)
+    result = {'ntp_loss': (-true_lp).mean(0).numpy()}
+    if masks is not None:
+        a = torch.as_tensor(masks, dtype=torch.bool)
+        # [sample,position,level]; nested sets telescope exactly.
+        log_mass = torch.logsumexp(lp[:, :, None, :].masked_fill(~a, -torch.inf), -1)
+        prev = torch.cat((torch.zeros_like(log_mass[..., :1]), log_mass[..., :-1]), -1)
+        peel = prev - log_mass
+        within = log_mass[..., -1] - true_lp
+        if not torch.isfinite(peel).all() or (peel < -1e-10).any():
+            raise ValueError('Invalid or non-nested RHM compatibility masks.')
+        error = ((-true_lp) - peel.sum(-1) - within).abs().max().item()
+        if error > 1e-9:
+            raise RuntimeError(f'Loss decomposition failed: {error}')
+        result.update(peeled_contribution=peel.mean(0).numpy(),
+                      within_loss=within.mean(0).numpy())
+    return result
+
+
+def _stage1_masks(config, run_dir, valid_inputs, valid_targets):
+    """Reuse existing compatibility code and saved rules, once for all checkpoints."""
+    from rhm_margins import CompatibilityComputer, RHMParamsLite
+    params = RHMParamsLite(**{key: int(getattr(config, key)) for key in
+                             ('num_features', 'num_classes', 'num_synonyms', 'tuple_size', 'num_layers')})
+    rules = base.normalize_rules(base.safe_load(base.find_rules(run_dir)))
+    full = torch.cat((valid_inputs[:, :1], valid_targets), dim=1).numpy()
+    computer = CompatibilityComputer(params, rules)
+    a, b = computer.masks_for_sequences(full)
+    computer.clear_caches()
+    previous = np.concatenate((np.ones_like(a[:, :, :1]), a[:, :, :-1]), axis=2)
+    if np.any(a & ~previous):
+        raise ValueError('RHM sets are not nested.')
+    truth = np.take_along_axis(a, valid_targets.numpy()[:, :, None, None], axis=-1)
+    if not truth.all():
+        raise ValueError('A true token is absent from a compatibility set.')
+    return a, b.any(-1).mean(0)
+
+
+def compute_stage1(checkpoints, config, init_module, cli, repo_dir, source_dir,
+                   run_dir, output_dir, temp_dir, selected_indices):
+    """One state extraction per checkpoint; pooled train fits, held-out diagnostics.
+
+    Diagnostic arrays use [time,layer,position,(alpha or rank)]. The fixed
+    reference is the last selected checkpoint. No hidden states are required
+    to have been saved during training; they are reconstructed from checkpoints.
+    """
+    if not base.is_rhm(config, run_dir):
+        raise ValueError('Stage 1 currently supports RHM NTP runs only.')
+    # Do not silently generate a new dataset for an old run.
+    if cli.reference_source == 'auto':
+        cli.reference_source = 'saved'
+    train_x, train_y, valid_x, valid_y, refmeta = load_ntp_task_references(
+        config, cli, repo_dir, source_dir, run_dir)
+    if len(train_x) < 2 or len(valid_x) < 2:
+        raise ValueError('Stage 1 needs at least two sequences per split.')
+    alphas = np.asarray([float(x) for x in cli.stage1_alphas.split(',')])
+    ranks = np.asarray([int(x) for x in cli.stage1_ranks.split(',')])
+    if not np.isfinite(alphas).all() or np.any(alphas <= 0) or np.any(ranks <= 0):
+        raise ValueError('Stage-1 alphas must be finite/positive, and ranks positive.')
+    if not 0 < cli.stage1_rank_rtol < 1:
+        raise ValueError('stage1_rank_rtol must lie in (0,1).')
+    fit_dev = fit_device(cli)
+    dtype = torch.float64  # diagnostics and rank checks need stable arithmetic
+    nt, np_, vocab = len(checkpoints), valid_x.shape[1], int(config.vocab_size)
+    arrays, metadata_list = {}, [None] * nt
+    masks = None
+    if cli.stage1_loss:
+        print('[STAGE1] Building compatibility masks once on the fixed validation subset.', flush=True)
+        masks, valid_fraction = _stage1_masks(config, run_dir, valid_x, valid_y)
+        arrays['rhm_valid_fraction_by_position'] = valid_fraction
+    labels = valid_y.numpy().T
+    # Pooled train class frequencies; also a position-dependent baseline.
+    freq = torch.bincount(train_y.reshape(-1), minlength=vocab).double().numpy()
+    freq /= freq.sum()
+    pos_freq = np.stack([np.bincount(train_y[:, p].numpy(), minlength=vocab) / len(train_y)
+                         for p in range(np_)])
+    arrays['probe_baseline_error'] = np.array([
+        1 + np.sum(freq**2) - 2*np.mean(freq[labels[p]]) for p in range(np_)])
+    arrays['probe_position_baseline_error'] = np.array([
+        1 + np.sum(pos_freq[p]**2) - 2*np.mean(pos_freq[p, labels[p]]) for p in range(np_)])
+    reference_index = nt - 1
+    order = [reference_index] + list(range(nt - 1))
+    names_ref = None
+    cache_dir = temp_dir / 'stage1_reference'
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    for ti in order:
+        print(f'[STAGE1] checkpoint {ti+1}/{nt}: {checkpoints[ti].name}', flush=True)
+        names, meta, arch = store_state_checkpoint(
+            checkpoints[ti], ti, config, init_module, {'train': train_x, 'valid': valid_x},
+            cli, temp_dir, include_embedding=True, include_final_norm=True)
+        metadata_list[ti] = meta
+        weight_path = temp_dir / f'stage1_weights_{ti}.npz'
+        with np.load(weight_path, allow_pickle=False) as weight_data:
+            groups = sorted(weight_data.files)
+            if 'weight_group_names' not in arrays:
+                arrays['weight_group_names'] = np.asarray(groups)
+                for key in ('weight_cosine', 'weight_norm', 'weight_relative_displacement'):
+                    arrays[key] = np.full((nt, len(groups)), np.nan)
+            for gi, group in enumerate(groups):
+                for mi, key in enumerate(('weight_cosine', 'weight_norm', 'weight_relative_displacement')):
+                    arrays[key][ti, gi] = weight_data[group][mi]
+        weight_path.unlink()
+        if names_ref is None:
+            names_ref = names
+            shape = (nt, len(names), np_)
+            for key in ('state_energy', 'update_energy', 'novelty_energy',
+                        'novelty_uncentered_energy', 'state_cka', 'update_cka',
+                        'novelty_cka', 'numerical_rank', 'state_rms'):
+                arrays[key] = np.full(shape, np.nan)
+            for key in ('probe_error', 'probe_energy', 'probe_output_energy',
+                        'probe_cka', 'probe_displacement', 'probe_centered_displacement'):
+                arrays[key] = np.full(shape + (len(alphas),), np.nan)
+            for key in ('low_rank_cka', 'rank_energy_fraction', 'rank_gap_relative', 'rank_singular_relative'):
+                arrays[key] = np.full(shape + (len(ranks),), np.nan)
+            arrays['train_feature_variance'] = np.full(shape[:2], np.nan)
+        elif names != names_ref:
+            raise RuntimeError('Representation names changed across checkpoints.')
+        prev_train = prev_valid = None
+        for ki, name in enumerate(names):
+            train = np.load(state_path(temp_dir, 'train', ti, ki), mmap_mode='r')
+            valid = np.load(state_path(temp_dir, 'valid', ti, ki), mmap_mode='r')
+            h = torch.as_tensor(np.array(valid.transpose(1, 0, 2)), device=fit_dev, dtype=dtype)
+            hc = h - h.mean(1, keepdim=True)
+            energy = hc.square().sum(-1).mean(-1)
+            arrays['state_energy'][ti, ki] = energy.cpu().numpy()
+            arrays['state_rms'][ti, ki] = h.square().mean((1, 2)).sqrt().cpu().numpy()
+            u, s, supported, captured, gap, relative = _stage1_spectrum(h, ranks, cli.stage1_rank_rtol)
+            if 'singular_values' not in arrays:
+                arrays['singular_values'] = np.full((nt, len(names), np_, s.shape[-1]), np.nan)
+            arrays['singular_values'][ti, ki] = s.cpu().numpy()
+            arrays['numerical_rank'][ti, ki] = supported.cpu().numpy()
+            arrays['rank_energy_fraction'][ti, ki] = captured.cpu().numpy()
+            arrays['rank_gap_relative'][ti, ki] = gap.cpu().numpy()
+            arrays['rank_singular_relative'][ti, ki] = relative.cpu().numpy()
+            # Existing sufficient-statistics accumulator, reused once for all alphas.
+            mean_x, class_freq, cov_x, cov_xy = fit_task_probe(
+                train, train_y, vocab_size=vocab, alpha=0, device=fit_dev,
+                dtype_name='float64', chunk_rows=cli.linear_fit_chunk_rows,
+                return_statistics=True)
+            values, vectors = torch.linalg.eigh(cov_x)
+            values = values.clamp_min(0)
+            projected = vectors.T @ cov_xy
+            arrays['train_feature_variance'][ti, ki] = float(values.mean().cpu())
+            predictions = []
+            for ai, alpha in enumerate(alphas):
+                w = vectors @ (projected / (values[:, None] + float(alpha)))
+                z = (h - mean_x) @ w + class_freq
+                predictions.append(z)
+                centered = z - z.mean(1, keepdim=True)
+                lab = torch.as_tensor(labels, device=fit_dev, dtype=torch.long)
+                err = z.square().sum(-1) + 1 - 2*z.gather(-1, lab[..., None]).squeeze(-1)
+                arrays['probe_error'][ti, ki, :, ai] = err.mean(1).cpu().numpy()
+                arrays['probe_energy'][ti, ki, :, ai] = centered.square().sum(-1).mean(1).cpu().numpy()
+                arrays['probe_output_energy'][ti, ki, :, ai] = z.square().sum(-1).mean(1).cpu().numpy()
+            z_all = torch.stack(predictions)  # [alpha,position,sample,vocab]
+            residual = update = None
+            if name.startswith('block_'):
+                mx, my, w = fit_ridge_map(prev_train, train, alpha=cli.novelty_ridge_alpha,
+                    device=fit_dev, dtype_name='float64', chunk_rows=cli.linear_fit_chunk_rows)
+                residual = (h-my) - (prev_valid-mx) @ w
+                update = h-prev_valid
+                rc = residual-residual.mean(1, keepdim=True)
+                uc = update-update.mean(1, keepdim=True)
+                arrays['novelty_energy'][ti, ki] = rc.square().sum(-1).mean(1).cpu().numpy()
+                arrays['novelty_uncentered_energy'][ti, ki] = residual.square().sum(-1).mean(1).cpu().numpy()
+                arrays['update_energy'][ti, ki] = uc.square().sum(-1).mean(1).cpu().numpy()
+            cache_file = cache_dir / f'layer_{ki}.npz'
+            if ti == reference_index:
+                # Only the reference's states/probe predictions/subspaces are retained.
+                payload = dict(h=h.cpu().numpy(), u=u[:, :, :max(ranks)].cpu().numpy(),
+                               supported=supported.cpu().numpy(), z=z_all.cpu().numpy(),
+                               singular_values=s.cpu().numpy())
+                if residual is not None:
+                    payload.update(residual=residual.cpu().numpy(), update=update.cpu().numpy())
+                np.savez(cache_file, **payload)
+            with np.load(cache_file, allow_pickle=False) as ref:
+                rh = torch.as_tensor(ref['h'], device=fit_dev, dtype=dtype)
+                arrays['state_cka'][ti, ki] = _stage1_cka(h, rh).cpu().numpy()
+                for ai in range(len(alphas)):
+                    rz = torch.as_tensor(ref['z'][ai], device=fit_dev, dtype=dtype)
+                    z = z_all[ai]
+                    arrays['probe_cka'][ti, ki, :, ai] = _stage1_cka(z, rz).cpu().numpy()
+                    arrays['probe_displacement'][ti, ki, :, ai] = (z-rz).square().sum(-1).mean(1).cpu().numpy()
+                    zc, rzc = z-z.mean(1, keepdim=True), rz-rz.mean(1, keepdim=True)
+                    arrays['probe_centered_displacement'][ti, ki, :, ai] = (zc-rzc).square().sum(-1).mean(1).cpu().numpy()
+                for ri, r in enumerate(ranks):
+                    if r <= u.shape[-1] and r <= ref['u'].shape[-1]:
+                        ru = torch.as_tensor(ref['u'][:, :, :r], device=fit_dev, dtype=dtype)
+                        q = (u[:, :, :r].transpose(1, 2) @ ru).square().sum((1, 2)) / int(r)
+                        good = (supported.cpu().numpy() >= r) & (ref['supported'] >= r)
+                        arrays['low_rank_cka'][ti, ki, :, ri] = np.where(good, q.cpu().numpy().clip(0, 1), np.nan)
+                if residual is not None:
+                    rr = torch.as_tensor(ref['residual'], device=fit_dev, dtype=dtype)
+                    ur = torch.as_tensor(ref['update'], device=fit_dev, dtype=dtype)
+                    arrays['novelty_cka'][ti, ki] = _stage1_cka(residual, rr).cpu().numpy()
+                    arrays['update_cka'][ti, ki] = _stage1_cka(update, ur).cpu().numpy()
+            prev_train, prev_valid = train, h
+        logits = np.load(temp_dir / f'stage1_logits_{ti}.npy', mmap_mode='r')
+        losses = _stage1_loss(logits, valid_y, masks)
+        for key, value in losses.items():
+            if key not in arrays:
+                arrays[key] = np.full((nt,) + value.shape, np.nan)
+            arrays[key][ti] = value
+        del logits
+        (temp_dir / f'stage1_logits_{ti}.npy').unlink()
+        del train, valid, prev_train, prev_valid
+        remove_checkpoint_states(temp_dir, ti)
+        cleanup_cuda()
+        # A small partial output survives interruptions; completed indices are explicit.
+        arrays['completed_indices'] = np.asarray(sorted(i for i,m in enumerate(metadata_list) if m is not None))
+        np.savez_compressed(output_dir / 'stage1_partial.npz', **arrays)
+    steps = [int(m.get('step') if m.get('step') is not None else m['step_from_name']) for m in metadata_list]
+    arrays.update(selected_steps=np.asarray(steps), layer_names=np.asarray(names_ref),
+                  target_token_positions_1based=np.arange(2, np_+2),
+                  alphas=alphas, ranks=ranks, reference_index=np.asarray(reference_index),
+                  reference_step=np.asarray(steps[reference_index]),
+                  rank_rtol=np.asarray(cli.stage1_rank_rtol),
+                  selected_checkpoint_indices=np.asarray(selected_indices),
+                  schema_version=np.asarray(1))
+    metadata = dict(reference=refmeta, config=vars(config), checkpoints=[str(p) for p in checkpoints],
+                    reference_step=steps[reference_index],
+                    description='Train-pooled affine ridge; position-wise held-out diagnostics; fixed final reference.',
+                    ridge_objective='mean over rows of squared vector error + alpha * squared Frobenius norm',
+                    rank_policy='Exact SVD; undefined overlap if either numerical rank is below requested rank.',
+                    alphas=alphas, ranks=ranks, novelty_alpha=cli.novelty_ridge_alpha,
+                    rhm_loss_computed=bool(cli.stage1_loss),
+                    axes='time,layer,target_position; optional last axis alpha or rank',
+                    probe_outputs='Affine least-squares scores, not probabilities; do not interpret their MSE as NTP loss.')
+    arrays['metadata_json'] = np.asarray(json.dumps(base.jsonify(metadata), sort_keys=True))
+    path = output_dir / 'stage1_diagnostics.npz'
+    np.savez_compressed(path, **arrays)
+    (output_dir / 'stage1_partial.npz').unlink(missing_ok=True)
+    (output_dir / 'stage1_metadata.json').write_text(json.dumps(base.jsonify(metadata), indent=2))
+    print(f'[STAGE1] Saved {path}', flush=True)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
 
@@ -1286,6 +1660,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--linear_fit_dtype", choices=("float32", "float64"), default="float64")
     parser.add_argument("--linear_fit_chunk_rows", type=int, default=65536)
 
+    parser.add_argument("--stage1_alphas", default="1e-5,1e-4,1e-3",
+                        help="Three fixed ridge values; no test-set alpha selection.")
+    parser.add_argument("--stage1_ranks", default="8,16")
+    parser.add_argument("--stage1_rank_rtol", type=float, default=1e-5)
+    parser.add_argument("--stage1_loss", action=argparse.BooleanOptionalAction, default=True,
+                        help="Compute exact RHM loss decomposition on the same subset; --no-stage1_loss skips masks.")
     return parser.parse_args()
 
 
@@ -1346,6 +1726,21 @@ def main() -> None:
         flush=True,
     )
     print(f"[INFO] output_dir={output_dir}", flush=True)
+
+    if cli.overlap_definition == "stage1":
+        import tempfile
+        root = output_dir if cli.temp_root is None else base.resolve_relative(cli.temp_root, repo_dir)
+        root.mkdir(parents=True, exist_ok=True)
+        temp_dir = Path(tempfile.mkdtemp(prefix="_stage1_", dir=root))
+        try:
+            compute_stage1(checkpoints, config, init_module, cli, repo_dir, source_dir,
+                           run_dir, output_dir, temp_dir, selected_indices)
+        finally:
+            if cli.keep_temp:
+                print(f"[STAGE1] Temporary files kept: {temp_dir}", flush=True)
+            else:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+        return
 
     # ------------------------------------------------------------------
     # Existing definitions: reuse the mature implementation verbatim.
@@ -1514,6 +1909,7 @@ def main() -> None:
                     metadata,
                     arch,
                     novelty_energy,
+                    novelty_dynamics,
                 ) = compute_novelty(
                     checkpoints,
                     config,
@@ -1545,6 +1941,7 @@ def main() -> None:
                     reference_metadata=reference_metadata,
                     cli=cli,
                     novelty_energy_fraction=novelty_energy,
+                    novelty_dynamics=novelty_dynamics,
                 )
             else:
                 raise RuntimeError(f"Unhandled definition {cli.overlap_definition}")

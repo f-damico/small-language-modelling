@@ -1,0 +1,40 @@
+--- a/run_slm_representation_overlaps.pbs
++++ b/run_slm_representation_overlaps.pbs
+@@ -22,9 +22,17 @@
+ # Run selection
+ # =============================================================================
+ 
+-RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"
++# Legacy interface: SAVE_NAME selects training data; RUN_NAME names the output.
++# New interface (without SAVE_NAME): RUN_NAME selects training data and
++# OUTPUT_NAME names the output. Explicit OUTPUT_NAME always takes precedence.
++if [ -n "${SAVE_NAME:-}" ]; then
++    TRAIN_RUN_NAME="$SAVE_NAME"
++    OUTPUT_NAME="${OUTPUT_NAME:-${RUN_NAME:-}}"
++else
++    TRAIN_RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"
++fi
+ RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}"
+-RUN_DIR="${RUN_DIR:-}"              # Optional leaf path; overrides RUN_NAME/RUN_ID.
++RUN_DIR="${RUN_DIR:-}"              # Optional leaf path; overrides training selection.
+ OUTPUT_NAME="${OUTPUT_NAME:-}"      # Empty -> automatic name.
+ 
+ # =============================================================================
+@@ -163,7 +171,7 @@
+ if [ -n "$RUN_DIR" ]; then
+     RESOLVED_RUN_DIR="$RUN_DIR"
+ else
+-    RESOLVED_RUN_DIR="$DATA_ROOT/$RUN_NAME/$RUN_ID"
++    RESOLVED_RUN_DIR="$DATA_ROOT/$TRAIN_RUN_NAME/$RUN_ID"
+ fi
+ 
+ bool_arg() {
+@@ -257,7 +265,7 @@
+ if [ -n "$RUN_DIR" ]; then
+     CMD+=(--run_dir "$RUN_DIR")
+ else
+-    CMD+=(--run_name "$RUN_NAME" --run_id "$RUN_ID")
++    CMD+=(--run_name "$TRAIN_RUN_NAME" --run_id "$RUN_ID")
+ fi
+ if [ -n "$OUTPUT_NAME" ]; then
+     CMD+=(--output_name "$OUTPUT_NAME")

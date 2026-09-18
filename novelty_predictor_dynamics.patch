@@ -1,0 +1,227 @@
+--- a/compute_slm_ntp_overlaps.py
++++ b/compute_slm_ntp_overlaps.py
+@@ -894,7 +894,7 @@
+     valid_reference: torch.Tensor,
+     cli: argparse.Namespace,
+     temp_dir: Path,
+-) -> Tuple[np.ndarray, List[str], List[Dict[str, Any]], str, np.ndarray]:
++) -> Tuple[np.ndarray, List[str], List[Dict[str, Any]], str, np.ndarray, Dict[str, np.ndarray]]:
+     fit_dev = fit_device(cli)
+     layer_names_ref: Optional[List[str]] = None
+     metadata_list: List[Dict[str, Any]] = []
+@@ -903,8 +903,26 @@
+     energy_fraction = np.full(
+         (len(checkpoints), int(getattr(config, "depth"))), np.nan, dtype=np.float64
+     )
+-
+-    for checkpoint_index, checkpoint in enumerate(checkpoints):
++    # Final selected checkpoint is evaluated first, but output time order is unchanged.
++    reference_index = len(checkpoints) - 1
++    metadata_list = [None] * len(checkpoints)
++    dynamics = {
++        "novelty_dynamics_reference_index": np.asarray(reference_index),
++        "novelty_dynamics_axes": np.asarray("time,block,position; map_relative_change: time,block"),
++        "novelty_dynamics_definition": np.asarray(
++            "f_t(x)=(x-mean_x_t)@A_t+mean_y_t; reference *=last selected checkpoint; "
++            "prediction_change=mean||f_t(x_t)-f_*(x_*)||^2; "
++            "fixed_input_change=mean||f_t(x_*)-f_*(x_*)||^2; "
++            "prediction_cka=position-centered CKA(f_t(x_t),f_*(x_*)); "
++            "map_relative_change=||A_t-A_*||_F^2/||A_*||_F^2; "
++            "residual_mse=mean||y_t-f_t(x_t)||^2; "
++            "target energies=mean||y-mean(y)||^2; all evaluation means over held-out samples; "
++            "raw coordinates, no alignment; fixed and own-input changes are not additive."),
++    }
++    reference_dir = temp_dir / "novelty_predictor_reference"
++    reference_dir.mkdir(exist_ok=True)
++    for checkpoint_index in [reference_index] + list(range(reference_index)):
++        checkpoint = checkpoints[checkpoint_index]
+         print(
+             f"[INFO] novelty checkpoint {checkpoint_index + 1}/{len(checkpoints)} "
+             f"{checkpoint.name}",
+@@ -938,9 +956,14 @@
+             energy_fraction = np.full(
+                 (len(checkpoints), len(novelty_names)), np.nan, dtype=np.float64
+             )
++            for key in ("prediction_change", "fixed_input_change", "prediction_cka",
++                        "reference_target_energy", "target_energy", "residual_mse"):
++                dynamics["novelty_" + key] = np.full(
++                    (len(checkpoints), len(novelty_names), n_positions), np.nan)
++            dynamics["novelty_map_relative_change"] = np.full(energy_fraction.shape, np.nan)
+         elif novelty_names != layer_names_ref or arch != architecture_ref:
+             raise RuntimeError("Novelty representation layout changed between checkpoints.")
+-        metadata_list.append(metadata)
++        metadata_list[checkpoint_index] = metadata
+ 
+         for novelty_layer in range(len(novelty_names)):
+             x_train = np.load(
+@@ -969,6 +992,20 @@
+                 state_path(temp_dir, "valid", checkpoint_index, novelty_layer + 1),
+                 mmap_mode="r",
+             )
++            map_path = reference_dir / f"map_{novelty_layer}.npz"
++            if checkpoint_index == reference_index:
++                np.savez(map_path, weights=weights.detach().cpu().numpy(),
++                         mean_x=mean_x.detach().cpu().numpy(), mean_y=mean_y.detach().cpu().numpy())
++                np.save(reference_dir / f"input_{novelty_layer}.npy", x_valid)
++                np.save(reference_dir / f"target_{novelty_layer}.npy", y_valid)
++            with np.load(map_path) as ref:
++                rw, rxm, rym = [torch.as_tensor(ref[k], device=fit_dev, dtype=weights.dtype)
++                                for k in ("weights", "mean_x", "mean_y")]
++            ref_x = np.load(reference_dir / f"input_{novelty_layer}.npy", mmap_mode="r")
++            ref_y = np.load(reference_dir / f"target_{novelty_layer}.npy", mmap_mode="r")
++            map_den = float(rw.square().sum())
++            dynamics["novelty_map_relative_change"][checkpoint_index, novelty_layer] = (
++                float((weights-rw).square().sum()) / map_den if map_den > EPS else np.nan)
+             residual_sq = 0.0
+             target_sq = 0.0
+             for position in range(n_positions):
+@@ -983,6 +1020,25 @@
+                     device=fit_dev,
+                 )
+                 residual = (y - mean_y) - (x - mean_x) @ weights
++                # Same held-out sequences, no extra fitting or model forwards.
++                xr = torch.as_tensor(np.array(ref_x[:, position]), device=fit_dev, dtype=weights.dtype)
++                yr = torch.as_tensor(np.array(ref_y[:, position]), device=fit_dev, dtype=weights.dtype)
++                predicted = y - residual
++                reference_prediction = (xr-rxm) @ rw + rym
++                fixed_prediction = (xr-mean_x) @ weights + mean_y
++                idx = (checkpoint_index, novelty_layer, position)
++                values = {
++                    "prediction_change": (predicted-reference_prediction).square().sum(-1).mean(),
++                    "fixed_input_change": (fixed_prediction-reference_prediction).square().sum(-1).mean(),
++                    "reference_target_energy": (yr-yr.mean(0)).square().sum(-1).mean(),
++                    "target_energy": (y-y.mean(0)).square().sum(-1).mean(),
++                    "residual_mse": residual.square().sum(-1).mean(),
++                    "prediction_cka": _stage1_cka(predicted.double()[None],
++                                                  reference_prediction.double()[None])[0],
++                }
++                for key, value in values.items():
++                    dynamics["novelty_" + key][idx] = float(value)
++                del xr, yr, predicted, reference_prediction, fixed_prediction, values
+                 residual_np = residual.detach().float().cpu().numpy()
+                 residual_np = residual_np - residual_np.mean(axis=0, keepdims=True)
+                 gram = residual_np @ residual_np.T
+@@ -1006,7 +1062,7 @@
+             energy_fraction[checkpoint_index, novelty_layer] = (
+                 residual_sq / target_sq if target_sq > EPS else np.nan
+             )
+-            del x_valid, y_valid, mean_x, mean_y, weights
++            del x_valid, y_valid, mean_x, mean_y, weights, ref_x, ref_y, rw, rxm, rym
+             cleanup_cuda()
+ 
+         remove_checkpoint_states(temp_dir, checkpoint_index)
+@@ -1021,7 +1077,7 @@
+         len(layer_names_ref),
+         n_positions,
+     )
+-    return overlap, layer_names_ref, metadata_list, architecture_ref, energy_fraction
++    return overlap, layer_names_ref, metadata_list, architecture_ref, energy_fraction, dynamics
+ 
+ 
+ # =============================================================================
+@@ -1150,6 +1206,7 @@
+     reference_metadata: Mapping[str, Any],
+     cli: argparse.Namespace,
+     novelty_energy_fraction: Optional[np.ndarray] = None,
++    novelty_dynamics: Optional[Mapping[str, np.ndarray]] = None,
+ ) -> Path:
+     arrays = base.common_arrays(
+         checkpoints,
+@@ -1209,6 +1266,8 @@
+         )
+         if novelty_energy_fraction is not None:
+             arrays["novelty_valid_residual_energy_fraction"] = novelty_energy_fraction
++        if novelty_dynamics is not None:
++            arrays.update(novelty_dynamics)
+         filename = "novelty_overlaps.npz"
+     elif definition == "task":
+         arrays.update(
+@@ -1850,6 +1909,7 @@
+                     metadata,
+                     arch,
+                     novelty_energy,
++                    novelty_dynamics,
+                 ) = compute_novelty(
+                     checkpoints,
+                     config,
+@@ -1881,6 +1941,7 @@
+                     reference_metadata=reference_metadata,
+                     cli=cli,
+                     novelty_energy_fraction=novelty_energy,
++                    novelty_dynamics=novelty_dynamics,
+                 )
+             else:
+                 raise RuntimeError(f"Unhandled definition {cli.overlap_definition}")
+--- a/plot_ntp_overlaps_updated.py
++++ b/plot_ntp_overlaps_updated.py
+@@ -1014,6 +1014,70 @@
+         weight_level=weight_level,
+         weight_selection=weight_selection,
+     )
++
++def plot_ntp_novelty_dynamics(results_dir, *, layers=('block_1', 'block_4', 'block_8'),
++                              position='mean', save_path=None):
++    """One figure for the affine predictor h_l ~= (h_{l-1}-mx) A + my.
++
++    Uses the last selected checkpoint as reference. Raw-coordinate comparisons,
++    not invariants under changes of representation basis. Errors include mean
++    offsets; their denominators are centered target energies. Position pooling
++    uses ratios of summed energies, not averages of unstable per-position ratios.
++    Requires a novelty run computed with the predictor-dynamics extension.
++    """
++    path = Path(results_dir).expanduser()
++    if path.suffix != '.npz':
++        path = path / 'novelty_overlaps.npz'
++    with np.load(path, allow_pickle=True) as f:
++        if 'novelty_prediction_change' not in f.files:
++            raise ValueError('Rerun OVERLAP_DEFINITION=novelty with the updated computation; '
++                             'old overlaps do not contain predictor dynamics.')
++        names = f['layer_names'].tolist()
++        keys = ('prediction_change', 'fixed_input_change', 'prediction_cka',
++                'reference_target_energy', 'target_energy', 'residual_mse', 'map_relative_change')
++        data = {k: f['novelty_' + k] for k in keys}
++        t = f['selected_steps']
++        reference = int(f['novelty_dynamics_reference_index'])
++    positions = np.arange(2, data['prediction_change'].shape[-1] + 2)
++    pi = np.arange(len(positions)) if position == 'mean' else np.flatnonzero(positions == int(position))
++    if not len(pi):
++        raise ValueError(f'Available target positions: {positions.tolist()}')
++    def ratio(num, den):
++        return np.divide(num, den, out=np.full_like(num, np.nan), where=den > 1e-20)
++    fig, axes = plt.subplots(2, 2, figsize=(11, 7), constrained_layout=True)
++    for color, layer in zip(plt.get_cmap('tab10')(np.arange(len(layers))), layers):
++        name = layer.replace('block_', 'block_novelty_') if layer.startswith('block_') and not layer.startswith('block_novelty_') else layer
++        if name not in names:
++            raise ValueError(f'Unknown layer {layer}; available: {names}')
++        ki = names.index(name)
++        pooled = {k: data[k][:, ki, pi].mean(-1) for k in keys if k != 'map_relative_change'}
++        axes[0,0].plot(t, data['map_relative_change'][:,ki], color=color, label=layer)
++        axes[0,1].plot(t, ratio(pooled['prediction_change'], pooled['reference_target_energy']), color=color)
++        axes[0,1].plot(t, ratio(pooled['fixed_input_change'], pooled['reference_target_energy']), color=color, ls='--')
++        axes[1,0].plot(t, pooled['prediction_cka'], color=color)
++        axes[1,1].plot(t, ratio(pooled['residual_mse'], pooled['target_energy']), color=color)
++    axes[0,0].set_title('Map drift (all training positions pooled)')
++    axes[0,0].set_ylabel(r'$\|A_t-A_*\|_F^2/\|A_*\|_F^2$')
++    axes[0,0].legend()
++    axes[0,1].set_title('Prediction drift: own inputs (solid), fixed inputs (dashed)')
++    axes[0,1].set_ylabel('Squared change / reference target variance')
++    axes[1,0].set_title('Prediction geometry on matched sequences')
++    axes[1,0].set_ylabel('Prediction CKA with reference')
++    axes[1,0].set_ylim(-.02, 1.02)
++    axes[1,1].set_title('Held-out reconstruction error')
++    axes[1,1].set_ylabel('Residual MSE / current target variance')
++    axes[1,1].axhline(1, color='gray', ls=':', lw=1)
++    for ax in axes.flat:
++        ax.set_xscale('log' if np.all(t > 0) else 'symlog')
++        ax.set_xlabel('Training step')
++        ax.grid(alpha=.22)
++    fig.suptitle(f'Novelty predictor dynamics | reference step {t[reference]} | position={position}')
++    if save_path is not None:
++        out = Path(save_path).expanduser()
++        out.parent.mkdir(parents=True, exist_ok=True)
++        fig.savefig(out, dpi=160)
++    return fig
++
+ 
+ def plot_ntp_stage1(results_dir, *, layers=('block_1', 'block_4', 'block_8'),
+                     alpha=1e-4, position='mean', save_dir=None):

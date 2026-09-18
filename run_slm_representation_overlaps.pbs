@@ -19,22 +19,21 @@ DATA_ROOT="${DATA_ROOT:-$REPO_DIR/data}"
 COLLECTED_RESULTS_ROOT="${COLLECTED_RESULTS_ROOT:-$REPO_DIR/collected_results}"
 
 # =============================================================================
-# Input training run + output overlap saving
+# Run selection
 # =============================================================================
-#
-# SAVE_NAME : name of the Transformer training folder under data/.
-#             Example: slm_uniform_L4_v1
-# RUN_ID    : leaf folder identifying the particular trained run.
-# RUN_NAME  : name of THIS overlap computation; results are saved in
-#             collected_results/<RUN_NAME>/.
-# RUN_DIR   : optional explicit leaf training path. If set, it overrides
-#             SAVE_NAME/RUN_ID for locating checkpoints only.
-#
 
-SAVE_NAME="${SAVE_NAME:-slm_uniform_L3_v1}"
+# Legacy interface: SAVE_NAME selects training data; RUN_NAME names the output.
+# New interface (without SAVE_NAME): RUN_NAME selects training data and
+# OUTPUT_NAME names the output. Explicit OUTPUT_NAME always takes precedence.
+if [ -n "${SAVE_NAME:-}" ]; then
+    TRAIN_RUN_NAME="$SAVE_NAME"
+    OUTPUT_NAME="${OUTPUT_NAME:-${RUN_NAME:-}}"
+else
+    TRAIN_RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"
+fi
 RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}"
-RUN_NAME="${RUN_NAME:-ntp_overlaps}"
-RUN_DIR="${RUN_DIR:-}"
+RUN_DIR="${RUN_DIR:-}"              # Optional leaf path; overrides training selection.
+OUTPUT_NAME="${OUTPUT_NAME:-}"      # Empty -> automatic name.
 
 # =============================================================================
 # Choose ONE overlap definition
@@ -63,7 +62,7 @@ NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"       # 0 = every checkpoint; >0 = log-s
 MAX_STEP="${MAX_STEP:-}"                      # Optional maximum checkpoint step.
 
 INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"  # cka / low_rank / task.
-INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}" # cka / low_rank / task.
+INCLUDE_FINAL_NORM="${INCLUDE_FINAL_NORM:-1}"  # cka / low_rank / task.
 
 TEMP_ROOT="${TEMP_ROOT:-}"                    # Optional scratch directory.
 KEEP_TEMP="${KEEP_TEMP:-0}"                   # 1 keeps temporary representations/matrices.
@@ -172,7 +171,7 @@ fi
 if [ -n "$RUN_DIR" ]; then
     RESOLVED_RUN_DIR="$RUN_DIR"
 else
-    RESOLVED_RUN_DIR="$DATA_ROOT/$SAVE_NAME/$RUN_ID"
+    RESOLVED_RUN_DIR="$DATA_ROOT/$TRAIN_RUN_NAME/$RUN_ID"
 fi
 
 bool_arg() {
@@ -195,11 +194,8 @@ bool_arg() {
     echo "[INFO] repo_dir=$REPO_DIR"
     echo "[INFO] source_dir=$SOURCE_DIR"
     echo "[INFO] run_script=$RUN_SCRIPT"
-    echo "[INFO] save_name=$SAVE_NAME"
-    echo "[INFO] run_id=$RUN_ID"
-    echo "[INFO] run_name(overlap_output)=$RUN_NAME"
     echo "[INFO] resolved_run_dir=$RESOLVED_RUN_DIR"
-    echo "[INFO] output_dir=$COLLECTED_RESULTS_ROOT/$RUN_NAME"
+    echo "[INFO] output_name=${OUTPUT_NAME:-auto}"
     echo "[INFO] overlap_definition=$OVERLAP_DEFINITION"
     echo "[INFO] checkpoints: num=$NUM_CHECKPOINTS max_step=${MAX_STEP:-none}"
     echo "[INFO] references: train=$SUBSET_TRAIN_SIZE valid=$SUBSET_VALID_SIZE seed=$SUBSET_SEED source=$REFERENCE_SOURCE"
@@ -239,7 +235,7 @@ if [ ! -d "$RESOLVED_RUN_DIR/checkpoints" ]; then
 fi
 
 case "$OVERLAP_DEFINITION" in
-    weights|cka|block_update_cka|low_rank|novelty|task) ;;
+    weights|cka|block_update_cka|low_rank|novelty|task|stage1) ;;
     *)
         echo "[ERROR] Unknown OVERLAP_DEFINITION=$OVERLAP_DEFINITION" | tee -a "$JOB_LOG"
         exit 1
@@ -269,9 +265,11 @@ CMD=(
 if [ -n "$RUN_DIR" ]; then
     CMD+=(--run_dir "$RUN_DIR")
 else
-    CMD+=(--run_name "$SAVE_NAME" --run_id "$RUN_ID")
+    CMD+=(--run_name "$TRAIN_RUN_NAME" --run_id "$RUN_ID")
 fi
-CMD+=(--output_name "$RUN_NAME")
+if [ -n "$OUTPUT_NAME" ]; then
+    CMD+=(--output_name "$OUTPUT_NAME")
+fi
 if [ -n "$MAX_STEP" ]; then
     CMD+=(--max_step "$MAX_STEP")
 fi
@@ -282,6 +280,17 @@ fi
 CMD+=("$(bool_arg "$KEEP_TEMP" --keep_temp --no-keep_temp)")
 
 case "$OVERLAP_DEFINITION" in
+    stage1)
+        CMD+=(
+            --stage1_alphas "${STAGE1_ALPHAS:-1e-5,1e-4,1e-3}"
+            --stage1_ranks "${STAGE1_RANKS:-8,16}"
+            --stage1_rank_rtol "${STAGE1_RANK_RTOL:-1e-5}"
+            --novelty_ridge_alpha "$NOVELTY_RIDGE_ALPHA"
+            --linear_fit_device "$LINEAR_FIT_DEVICE"
+            --linear_fit_chunk_rows "$LINEAR_FIT_CHUNK_ROWS"
+            "$(bool_arg "${STAGE1_LOSS:-1}" --stage1_loss --no-stage1_loss)"
+        )
+        ;;
     cka)
         CMD+=(
             --cka_metric "$CKA_METRIC"

@@ -32,11 +32,11 @@ BLOCK_SIZE="${BLOCK_SIZE:-}"
 
 ######################################################
 
-NUM_FEATURES="${NUM_FEATURES:-64}"     # v
-NUM_CLASSES="${NUM_CLASSES:-64}"       # n = v
-NUM_SYNONYMS="${NUM_SYNONYMS:-5}"      # m
-TUPLE_SIZE="${TUPLE_SIZE:-2}"          # s
-NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM L; d=s^L is derived in Python 
+# NUM_FEATURES="${NUM_FEATURES:-64}"     # v
+# NUM_CLASSES="${NUM_CLASSES:-64}"       # n = v
+# NUM_SYNONYMS="${NUM_SYNONYMS:-5}"      # m
+# TUPLE_SIZE="${TUPLE_SIZE:-2}"          # s
+# NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM L; d=s^L is derived in Python 
 
 # NUM_FEATURES="${NUM_FEATURES:-8}"   
 # NUM_CLASSES="${NUM_CLASSES:-8}"
@@ -44,11 +44,11 @@ NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM L; d=s^L is derived in Python
 # TUPLE_SIZE="${TUPLE_SIZE:-3}"       
 # NUM_LAYERS="${NUM_LAYERS:-5}"       
    
-# NUM_FEATURES="${NUM_FEATURES:-8}"   
-# NUM_CLASSES="${NUM_CLASSES:-8}"
-# NUM_SYNONYMS="${NUM_SYNONYMS:-4}"   
-# TUPLE_SIZE="${TUPLE_SIZE:-3}"       
-# NUM_LAYERS="${NUM_LAYERS:-4}"
+NUM_FEATURES="${NUM_FEATURES:-8}"   
+NUM_CLASSES="${NUM_CLASSES:-8}"
+NUM_SYNONYMS="${NUM_SYNONYMS:-4}"   
+TUPLE_SIZE="${TUPLE_SIZE:-3}"       
+NUM_LAYERS="${NUM_LAYERS:-4}"
 
 # NUM_FEATURES="${NUM_FEATURES:-8}"   
 # NUM_CLASSES="${NUM_CLASSES:-8}"
@@ -57,7 +57,7 @@ NUM_LAYERS="${NUM_LAYERS:-6}"          # RHM L; d=s^L is derived in Python
 # NUM_LAYERS="${NUM_LAYERS:-3}"
 
 
-DEPTH="${DEPTH:-12}"
+DEPTH="${DEPTH:-4}"
 
 ######################################################
 
