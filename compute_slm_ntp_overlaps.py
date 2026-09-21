@@ -58,6 +58,7 @@ import compute_slm_representation_overlaps as base
 EPS = 1e-12
 NEW_METHODS = {"low_rank", "novelty", "task"}
 ALL_DEFINITIONS = (
+    "latent",
     "stage1",
     "weights",
     "cka",
@@ -490,6 +491,8 @@ def store_state_checkpoint(
             for layer_index, rep in enumerate(reps):
                 writers[layer_index][offset : offset + bs] = rep.numpy()
             offset += bs
+            if getattr(cli, 'overlap_definition', None) == 'latent':
+                _latent_log(f'extract {split}: {offset}/{len(reference)} sequences')
 
         if writers is None or offset != len(reference):
             raise RuntimeError(
@@ -1608,6 +1611,315 @@ def compute_stage1(checkpoints, config, init_module, cli, repo_dir, source_dir,
     print(f'[STAGE1] Saved {path}', flush=True)
 
 
+# =============================================================================
+# RHM latent probes: independent checkpoints, fixed exact targets
+# =============================================================================
+
+def _latent_log(message):
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [LATENT] {message}", flush=True)
+
+
+def _latent_normalize(a):
+    total = a.sum(-1, keepdims=True)
+    if np.any(total <= 0):
+        raise ValueError('Prefix incompatible with the saved grammar.')
+    return a / total
+
+
+def rhm_latent_targets(tokens, rules, mode='light', positions=None):
+    """Targets [(level k, zero-based position, posterior[N,q])].
+
+    k=1 is the parent of leaves. Complete mode targets the ancestor of the
+    CURRENT observed token, conditioned on its entire prefix. Uniform rule
+    probabilities and a uniform root prior match the supplied RHM generator.
+    """
+    rules = [np.asarray(rules[r], dtype=np.int64) for r in sorted(rules)]
+    depth, s = len(rules), rules[0].shape[-1]
+    q = rules[-1].max() + 1
+    # Child vocabulary can contain states absent from the last rule tensor.
+    if depth > 1:
+        q = rules[-1].shape[0]
+    n, length = tokens.shape
+    if length > s**depth or np.any(tokens < 0) or np.any(tokens >= q):
+        raise ValueError('Invalid input tokens or sequence length.')
+    wanted = set(range(length) if positions is None else positions)
+    if not wanted or min(wanted) < 0 or max(wanted) >= length:
+        raise ValueError('Positions must refer to observed input tokens.')
+    out = []
+    if mode == 'light':
+        current = tokens.copy()
+        for k in range(1, depth + 1):
+            r = depth-k
+            inverse = {}
+            for a in range(rules[r].shape[0]):
+                for children in rules[r][a]:
+                    key = tuple(children)
+                    if key in inverse and inverse[key] != a:
+                        raise ValueError('Light mode requires unambiguous rules.')
+                    inverse[key] = a
+            count = current.shape[1] // s
+            parent = np.empty((n, count), dtype=np.int64)
+            for b in range(count):
+                parent[:, b] = [inverse[tuple(row)] for row in current[:, b*s:(b+1)*s]]
+                j = (b+1)*s**k-1
+                if j in wanted:
+                    out.append((k, j, np.eye(rules[r].shape[0])[parent[:, b]]))
+            current = parent
+        return out
+    if mode != 'complete':
+        raise ValueError('mode must be light or complete')
+    # Exact sum-product on production factors (siblings are NOT independent).
+    last_report = time.monotonic()
+    for position_index, j in enumerate(sorted(wanted)):
+        if position_index == 0 or time.monotonic()-last_report >= 10:
+            _latent_log(f'BP prefix {position_index+1}/{len(wanted)}; position={j+1}, sequences={n}')
+            last_report = time.monotonic()
+        up = [None]*(depth+1)
+        up[-1] = np.ones((n, s**depth, q), dtype=np.float64)
+        up[-1][:, :j+1] = np.eye(q)[tokens[:, :j+1]]
+        for r in range(depth-1, -1, -1):
+            rule = rules[r]
+            up[r] = np.empty((n, s**r, rule.shape[0]))
+            for b in range(s**r):
+                weights = np.ones((n, *rule.shape[:2]))
+                for c in range(s):
+                    weights *= up[r+1][:, b*s+c, :][:, rule[:, :, c]]
+                up[r][:, b] = _latent_normalize(weights.mean(-1))
+        down = np.full((n, rules[0].shape[0]), 1/rules[0].shape[0])
+        for r in range(depth):
+            b = j // s**(depth-r)
+            out.append((depth-r, j, _latent_normalize(down*up[r][:, b])))
+            if r == depth-1:
+                break
+            c = (j // s**(depth-r-1)) % s
+            rule = rules[r]
+            weights = np.broadcast_to(down[:, :, None], (n, *rule.shape[:2])).copy()
+            for sibling in range(s):
+                if sibling != c:
+                    weights *= up[r+1][:, b*s+sibling, :][:, rule[:, :, sibling]]
+            child = np.zeros((n, rules[r+1].shape[0]))
+            for a in range(rule.shape[0]):
+                for rho in range(rule.shape[1]):
+                    child[:, rule[a, rho, c]] += weights[:, a, rho]/rule.shape[1]
+            down = _latent_normalize(child)
+    return sorted(out, key=lambda z: (z[0], z[1]))
+
+
+def _fit_latent_probe(x, target, cli):
+    """Convex regularized softmax fit; chunked closures bound GPU memory."""
+    dev = fit_device(cli)
+    mean = x.mean(0, dtype=np.float64).astype('float32')
+    scale = float(np.sqrt(np.mean((x-mean)**2)))
+    scale = max(scale, 1e-6)  # one scalar: preserves feature geometry
+    x = (x-mean)/scale
+    w = torch.zeros((x.shape[1], target.shape[1]), device=dev, requires_grad=True)
+    b = torch.zeros(target.shape[1], device=dev, requires_grad=True)
+    opt = torch.optim.LBFGS([w, b], max_iter=cli.latent_max_iter,
+        tolerance_grad=cli.latent_tol, tolerance_change=1e-10,
+        history_size=10, line_search_fn='strong_wolfe')
+    chunk = cli.latent_fit_batch
+    started = last_report = time.monotonic()
+    evaluations = 0
+    def closure():
+        nonlocal last_report, evaluations
+        evaluations += 1
+        opt.zero_grad()
+        total = torch.zeros((), device=dev)
+        for start in range(0, len(x), chunk):
+            xx = torch.as_tensor(x[start:start+chunk], device=dev)
+            yy = torch.as_tensor(target[start:start+chunk], dtype=torch.float32, device=dev)
+            loss = -(yy*torch.log_softmax(xx@w+b, -1)).sum()/len(x)
+            loss.backward()
+            total += loss.detach()
+        penalty = cli.latent_l2*w.square().sum()/2
+        penalty.backward()
+        if evaluations == 1 or time.monotonic()-last_report >= 10:
+            _latent_log(f'fit iteration={opt.state[w].get("n_iter", 0)}/{cli.latent_max_iter}, '
+                        f'objective evaluations={evaluations}, objective={float(total+penalty.detach()):.6g}, '
+                        f'elapsed={time.monotonic()-started:.1f}s')
+            last_report = time.monotonic()
+        return total+penalty.detach()
+    opt.step(closure)
+    objective = float(closure())
+    grad = max(float(w.grad.abs().max()), float(b.grad.abs().max()))
+    return (w.detach(), b.detach(), mean, scale,
+            objective, grad, opt.state[w].get('n_iter', 0))
+
+
+def _latent_scores(x, target, probe, chunk):
+    w, b, mean, scale = probe[:4]
+    values = []
+    with torch.no_grad():
+        for start in range(0, len(x), chunk):
+            xx = torch.as_tensor((x[start:start+chunk]-mean)/scale, device=w.device)
+            pp = torch.as_tensor(target[start:start+chunk], dtype=torch.float32, device=w.device)
+            logp = torch.log_softmax(xx@w+b, -1)
+            ce = -(pp*logp).sum(-1)
+            entropy = -(pp*pp.clamp_min(1e-30).log()).sum(-1)
+            error = 1-pp.gather(1, logp.argmax(-1)[:, None]).squeeze(1)
+            bayes = 1-pp.max(-1).values
+            values.append(torch.stack((ce-entropy, error, bayes), -1).cpu().numpy())
+    return np.concatenate(values)
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def _latent_cache_lock(cache_root, timeout=3600):
+    """Cross-node lock using atomic directory creation (not mount-local flock).
+
+    After a killed cache builder, remove cache_lock.d only once all array
+    tasks have stopped. Never automatically steal a possibly live lock.
+    """
+    import os, socket
+    lock = cache_root / 'cache_lock.d'
+    started = last_report = time.monotonic()
+    _latent_log(f'Waiting for target cache lock: {lock}')
+    while True:
+        try:
+            lock.mkdir()
+            break
+        except FileExistsError:
+            if time.monotonic()-last_report >= 10:
+                _latent_log(f'Waiting for another task to finish targets ({time.monotonic()-started:.0f}s)')
+                last_report = time.monotonic()
+            if time.monotonic() - started > timeout:
+                raise TimeoutError(f'Cache lock still held: {lock}. Check owner.json; '
+                                   'remove only after its owner and array have stopped.')
+            time.sleep(1)
+    try:
+        (lock / 'owner.json').write_text(json.dumps(dict(
+            host=socket.gethostname(), pid=os.getpid(),
+            job=os.environ.get('PBS_JOBID'), created=time.time())))
+        yield
+    finally:
+        (lock / 'owner.json').unlink(missing_ok=True)
+        lock.rmdir()
+
+
+def compute_latent_probes(checkpoints, config, init_module, cli, repo_dir,
+                          source_dir, run_dir, output_dir, selected_indices):
+    import os, hashlib, tempfile
+    if not base.is_rhm(config, run_dir):
+        raise ValueError('latent mode requires RHM.')
+    if cli.checkpoint_index < 0 or cli.checkpoint_index >= len(checkpoints):
+        raise ValueError(f'checkpoint_index must be in 0..{len(checkpoints)-1}')
+    if cli.latent_max_iter < 1 or cli.latent_fit_batch < 1 or cli.latent_l2 < 0:
+        raise ValueError('Invalid probe optimization parameters')
+    checkpoint = checkpoints[cli.checkpoint_index]
+    step = base.checkpoint_step(checkpoint)
+    path = output_dir / f'latent_step_{step:012d}.npz'
+    _latent_log(f'checkpoint index={cli.checkpoint_index}, step={step}; loading fixed references')
+    rules = base.normalize_rules(base.safe_load(base.find_rules(run_dir)))
+    tr, _, va, _, reference = load_ntp_task_references(config, cli, repo_dir, source_dir, run_dir)
+    # Fixed, sequence-disjoint probe splits; refuse overlap rather than leak labels.
+    train_rows = {row.tobytes() for row in tr.numpy()}
+    if any(row.tobytes() in train_rows for row in va.numpy()):
+        raise ValueError('Probe train/evaluation prefixes overlap; choose disjoint saved data or another subset seed.')
+    positions = None if cli.latent_positions == 'all' else [int(v)-1 for v in cli.latent_positions.split(',')]
+    spec = dict(mode=cli.latent_mode, positions=positions, run_dir=str(run_dir),
+        reference=reference, l2=cli.latent_l2, max_iter=cli.latent_max_iter,
+        tol=cli.latent_tol, include_embedding=cli.include_embedding,
+        include_final_norm=cli.include_final_norm,
+        selected_checkpoints=[p.name for p in checkpoints], schema=1)
+    digest = hashlib.sha256(json.dumps(base.jsonify(spec), sort_keys=True).encode())
+    for a in [tr.numpy(), va.numpy()] + [v.numpy() for v in rules.values()]:
+        digest.update(np.ascontiguousarray(a).tobytes())
+    signature = digest.hexdigest()
+    # Lock-free readers see only completely written NPZs. Writers serialize cache creation.
+    cache_root = output_dir / '_latent_cache'
+    cache_root.mkdir(exist_ok=True)
+    with _latent_cache_lock(cache_root):
+        manifest = cache_root/'signature.txt'
+        if manifest.exists() and manifest.read_text() != signature:
+            raise ValueError(
+                f'Probe cache signature mismatch: stored={manifest.read_text()!r}, '
+                f'computed={signature!r}. Do not delete the cache while jobs are active. '
+                'If stored is empty, an older worker may have truncated the manifest; '
+                'otherwise compare run/settings/data across tasks.')
+        # Never truncate/rewrite a manifest that other workers may be reading.
+        if not manifest.exists():
+            fd, manifest_tmp = tempfile.mkstemp(prefix='.signature_', dir=cache_root)
+            with os.fdopen(fd, 'w') as handle:
+                handle.write(signature)
+            os.replace(manifest_tmp, manifest)
+        cache = cache_root/'targets.npz'
+        if not cache.exists():
+            _latent_log(f'Building {cli.latent_mode} targets for train and evaluation splits')
+            targets = [rhm_latent_targets(a.numpy(), rules, cli.latent_mode, positions) for a in (tr, va)]
+            if not targets[0]:
+                raise ValueError('No completed endpoints selected.')
+            payload = dict(levels=[z[0] for z in targets[0]], positions=[z[1] for z in targets[0]])
+            for split, items in zip(('train', 'valid'), targets):
+                for u, (_, _, p) in enumerate(items):
+                    payload[f'{split}_{u}'] = p.astype('float32')
+            fd, tmp_name = tempfile.mkstemp(prefix='.targets_', dir=cache_root)
+            tmp = Path(tmp_name)
+            with os.fdopen(fd, 'wb') as handle:
+                np.savez_compressed(handle, **payload)
+            os.replace(tmp, cache)
+            _latent_log('Target cache written')
+        else:
+            _latent_log('Reusing completed target cache')
+    if path.exists() and not cli.latent_overwrite:
+        print(f'[LATENT] Already complete: {path}', flush=True)
+        return
+    with np.load(cache) as data:
+        levels, pos = data['levels'], data['positions']
+        targets = {split: [data[f'{split}_{u}'] for u in range(len(pos))] for split in ('train','valid')}
+    root = base.resolve_relative(cli.temp_root, repo_dir) if cli.temp_root else output_dir
+    root.mkdir(parents=True, exist_ok=True)
+    temp = Path(tempfile.mkdtemp(prefix=f'_latent_{step}_', dir=root))
+    try:
+        _latent_log('Extracting representations')
+        names, metadata, _ = store_state_checkpoint(checkpoint, 0, config, init_module,
+            {'train': tr, 'valid': va}, cli, temp,
+            include_embedding=cli.include_embedding, include_final_norm=cli.include_final_norm)
+        result = dict(schema_version=1, signature=signature, step=step,
+            checkpoint_index=cli.checkpoint_index,
+            expected_steps=[base.checkpoint_step(p) for p in checkpoints],
+            layer_names=np.asarray(names), levels=levels, positions=pos+1,
+            mode=cli.latent_mode, spec_json=json.dumps(base.jsonify(spec), sort_keys=True))
+        unique = np.unique(levels)
+        result['probe_levels'] = unique
+        result['fit_diagnostics'] = np.full((len(names), len(unique), 3), np.nan)
+        for split in ('train','valid'):
+            result[split+'_scores'] = np.full((len(names), len(pos), 3), np.nan)
+        for ell, name in enumerate(names):
+            states = {split: np.load(state_path(temp, split, 0, ell), mmap_mode='r') for split in targets}
+            for ki, k in enumerate(unique):
+                ii = np.flatnonzero(levels == k)
+                x = np.concatenate([states['train'][:, pos[u]] for u in ii])
+                y = np.concatenate([targets['train'][u] for u in ii])
+                _latent_log(f'step={step}, layer={name}, RHM k={k}: fitting {len(x)} rows, {len(ii)} positions')
+                probe = _fit_latent_probe(x, y, cli)
+                _latent_log(f'Fit finished: iterations={probe[6]}, gradient={probe[5]:.3g}; evaluating')
+                result['fit_diagnostics'][ell, ki] = probe[4:]
+                if probe[5] > cli.latent_tol:
+                    print(f'[LATENT] Fit check {name}, k={k}: gradient={probe[5]:.3g}, iterations={probe[6]}', flush=True)
+                for split in targets:
+                    for u in ii:
+                        scores = _latent_scores(states[split][:, pos[u]], targets[split][u], probe, cli.latent_fit_batch)
+                        result[split+'_scores'][ell, u] = scores.mean(0)
+                del probe, x, y
+            print(f'[LATENT] step={step}, {name} done', flush=True)
+        result['score_names'] = np.asarray(['kl', 'error', 'bayes_error'])
+        result['fit_diagnostic_names'] = np.asarray(['objective','gradient_max','iterations'])
+        # Temporary output resides on the same filesystem as its destination.
+        fd, tmp = tempfile.mkstemp(prefix='.latent_', dir=output_dir)
+        try:
+            with os.fdopen(fd, 'wb') as handle:
+                np.savez_compressed(handle, **result)
+            os.replace(tmp, path)
+        finally:
+            if os.path.exists(tmp): os.unlink(tmp)
+        print(f'[LATENT] Saved {path}', flush=True)
+    finally:
+        if not cli.keep_temp:
+            shutil.rmtree(temp, ignore_errors=True)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
 
@@ -1666,6 +1978,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stage1_rank_rtol", type=float, default=1e-5)
     parser.add_argument("--stage1_loss", action=argparse.BooleanOptionalAction, default=True,
                         help="Compute exact RHM loss decomposition on the same subset; --no-stage1_loss skips masks.")
+    parser.add_argument('--latent_list_checkpoints', action='store_true', help='Print selected zero-based array indices and exit')
+    parser.add_argument('--latent_mode', choices=('light','complete'), default='light')
+    parser.add_argument('--latent_positions', default='all', help='all or comma-separated ONE-based input positions')
+    parser.add_argument('--checkpoint_index', type=int, default=0, help='Zero-based index in selected checkpoint list')
+    parser.add_argument('--latent_max_iter', type=int, default=200)
+    parser.add_argument('--latent_fit_batch', type=int, default=4096)
+    parser.add_argument('--latent_l2', type=float, default=1e-4)
+    parser.add_argument('--latent_tol', type=float, default=1e-6)
+    parser.add_argument('--latent_overwrite', action='store_true')
     return parser.parse_args()
 
 
@@ -1711,6 +2032,12 @@ def main() -> None:
         run_dir, cli.max_step, cli.num_checkpoints
     )
 
+    if cli.latent_list_checkpoints:
+        for index, checkpoint in enumerate(checkpoints):
+            print(f"{index}: step={base.checkpoint_step(checkpoint)} {checkpoint.name}")
+        print(f"Array range: 0-{len(checkpoints)-1}")
+        return
+
     output_name = cli.output_name or default_output_name(
         run_dir, cli.overlap_definition
     )
@@ -1726,6 +2053,11 @@ def main() -> None:
         flush=True,
     )
     print(f"[INFO] output_dir={output_dir}", flush=True)
+
+    if cli.overlap_definition == "latent":
+        compute_latent_probes(checkpoints, config, init_module, cli, repo_dir,
+                             source_dir, run_dir, output_dir, selected_indices)
+        return
 
     if cli.overlap_definition == "stage1":
         import tempfile

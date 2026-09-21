@@ -26,5 +26,6 @@ __pycache__/
 data/
 results/
 collected_results/
+collect_results/
 pbs_logs/
 online_v16_m5_L4_big_bf16_seed0/

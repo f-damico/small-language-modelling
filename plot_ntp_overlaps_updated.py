@@ -1210,3 +1210,86 @@ def plot_ntp_stage1(results_dir, *, layers=('block_1', 'block_4', 'block_8'),
         for name, fig in figures.items():
             fig.savefig(out / f'{name}.png', dpi=160)
     return figures
+
+
+def load_rhm_latent_probes(results_dir):
+    """Read atomic per-checkpoint files; absent jobs remain NaN on the time grid."""
+    files = sorted(Path(results_dir).expanduser().glob('latent_step_*.npz'))
+    if not files:
+        return {'completed_steps': np.array([], dtype=int), 'files': []}
+    rows = []
+    for path in files:
+        with np.load(path, allow_pickle=False) as f:
+            rows.append({key: f[key] for key in f.files})
+    first = rows[0]
+    if any(str(r['signature']) != str(first['signature']) for r in rows):
+        raise ValueError('Mixed configurations in result folder.')
+    rows.sort(key=lambda r: int(r['step']))
+    expected = first['expected_steps'].astype(int)
+    if len(np.unique(expected)) != len(expected):
+        raise ValueError('Duplicate expected checkpoint steps')
+    order = np.argsort(expected)
+    times = expected[order]
+    out = {key: first[key] for key in ('layer_names','levels','positions','mode',
+                                     'probe_levels','score_names','fit_diagnostic_names')}
+    out.update(steps=times, completed_steps=np.array([int(r['step']) for r in rows]),
+               files=[str(p) for p in files])
+    for key in ('train_scores','valid_scores','fit_diagnostics'):
+        out[key] = np.full((len(times),)+first[key].shape, np.nan)
+        for r in rows:
+            out[key][np.flatnonzero(times == int(r['step']))[0]] = r[key]
+    out['missing_steps'] = np.setdiff1d(times, out['completed_steps'])
+    return out
+
+
+def plot_rhm_latent_probes(results_dir, *, metric='kl', split='test',
+                           levels=None, layers=None, position='mean',
+                           xscale='log', yscale='linear', figsize=None):
+    """One panel per RHM level, turbo curves for transformer layers.
+
+    metric: kl | error | excess_error. position: mean or one-based token index.
+    Test is the existing held-out valid split. Missing jobs make gaps in curves.
+    Complete error is posterior-expected hard error, not MAP-label disagreement.
+    """
+    data = load_rhm_latent_probes(results_dir)
+    if not len(data['completed_steps']):
+        print('No completed latent checkpoints yet.')
+        return None, None, data
+    if metric not in ('kl','error','excess_error'):
+        raise ValueError('metric must be kl, error or excess_error')
+    split = 'valid' if split == 'test' else split
+    if split not in ('train','valid'):
+        raise ValueError('split must be train, test or valid')
+    ks = np.unique(data['levels']) if levels is None else np.atleast_1d(levels)
+    if not len(ks) or not set(ks).issubset(set(data['levels'])):
+        raise ValueError('Requested RHM level not available')
+    names = data['layer_names'].tolist()
+    selected = names if layers is None else ([layers] if isinstance(layers, str) else list(layers))
+    li = [names.index(name) for name in selected]
+    cols = min(2, len(ks)); nr = int(np.ceil(len(ks)/cols))
+    fig, axes = plt.subplots(nr, cols, squeeze=False, figsize=figsize or (6*cols, 4*nr))
+    colors = plt.get_cmap('turbo')(np.linspace(.05,.9,len(names)))
+    score = data[split+'_scores']
+    y = score[..., 0 if metric == 'kl' else 1].copy()
+    if metric == 'excess_error': y -= score[..., 2]
+    mask = data['steps'] > 0 if xscale == 'log' else np.ones(len(data['steps']), dtype=bool)
+    for ax, k in zip(axes.flat, ks):
+        ix = data['levels'] == k
+        if position != 'mean': ix &= data['positions'] == int(position)
+        if not ix.any():
+            raise ValueError(f'No targets at k={k}, position={position}')
+        for ell in li:
+            # Equal-weight position average; each position has the same sequence count.
+            ax.plot(data['steps'][mask], y[:,ell,ix].mean(-1)[mask],
+                    color=colors[ell], label=names[ell], marker='.', lw=2)
+        if metric == 'error':
+            ax.plot(data['steps'][mask], score[:,0,ix,2].mean(-1)[mask],
+                    'k--', lw=1, label='BP Bayes error')
+        ax.set(xscale=xscale, yscale=yscale, xlabel='training steps',
+               ylabel=metric.replace('_',' '), title=f'RHM level k={k} ({str(data["mode"])})')
+        ax.grid(alpha=.25)
+    for ax in list(axes.flat)[len(ks):]: ax.set_visible(False)
+    axes.flat[0].legend(fontsize=8, frameon=False)
+    fig.suptitle(f'{len(data["completed_steps"])}/{len(data["steps"])} checkpoints complete')
+    fig.tight_layout()
+    return fig, axes, data
