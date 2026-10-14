@@ -2069,6 +2069,211 @@ def store_checkpoint_representations(
     )
 
 
+
+REPRESENTATION_NORM_SPECTRAL_ITERS = 20
+
+
+def _representation_norms_from_matrix(
+    matrix: torch.Tensor,
+    device: str,
+) -> Dict[str, float]:
+    """Fast scale diagnostics for a flattened representation matrix [rows, features].
+
+    ``l2`` is the RMS Euclidean norm of a row, ``centered_l2`` is the same after
+    subtracting the global feature mean, and ``spectral`` is the square root of
+    the largest eigenvalue of the centered feature covariance.  The latter is
+    estimated by a short deterministic power iteration, avoiding a full SVD.
+    """
+
+    if matrix.ndim != 2 or matrix.shape[0] == 0 or matrix.shape[1] == 0:
+        raise ValueError(
+            f"Expected a non-empty [rows, features] matrix, got {tuple(matrix.shape)}"
+        )
+
+    work_device = torch.device(device)
+    x = matrix.to(
+        device=work_device,
+        dtype=torch.float32,
+        non_blocking=work_device.type == "cuda",
+    )
+
+    number_rows = float(x.shape[0])
+    mean = x.mean(dim=0)
+
+    l2_sq = (x * x).sum(dim=1).mean()
+    mean_l2_sq = torch.dot(mean, mean)
+    centered_l2_sq = torch.clamp(l2_sq - mean_l2_sq, min=0.0)
+
+    feature_dim = int(x.shape[1])
+    # Deterministic non-axis-aligned initialization for power iteration.
+    v = torch.linspace(
+        1.0,
+        2.0,
+        feature_dim,
+        device=work_device,
+        dtype=torch.float32,
+    )
+    v = v / torch.clamp(torch.linalg.vector_norm(v), min=EPS)
+
+    def covariance_times(vector: torch.Tensor) -> torch.Tensor:
+        projected = x @ vector
+        return (
+            (x.T @ projected) / number_rows
+            - mean * torch.dot(mean, vector)
+        )
+
+    for _ in range(REPRESENTATION_NORM_SPECTRAL_ITERS):
+        cv = covariance_times(v)
+        cv_norm = torch.linalg.vector_norm(cv)
+        if float(cv_norm.item()) <= EPS:
+            v = torch.zeros_like(v)
+            break
+        v = cv / cv_norm
+
+    if torch.count_nonzero(v).item() == 0:
+        spectral_sq = torch.zeros((), device=work_device)
+    else:
+        spectral_sq = torch.clamp(
+            torch.dot(v, covariance_times(v)),
+            min=0.0,
+        )
+
+    values = {
+        "l2": float(torch.sqrt(torch.clamp(l2_sq, min=0.0)).item()),
+        "centered_l2": float(torch.sqrt(centered_l2_sq).item()),
+        "spectral": float(torch.sqrt(spectral_sq).item()),
+    }
+
+    del x, mean, v
+    if work_device.type == "cuda":
+        torch.cuda.empty_cache()
+
+    return values
+
+
+@torch.no_grad()
+def compute_representation_norms(
+    checkpoints: Sequence[Path],
+    config: argparse.Namespace,
+    init_module: Any,
+    valid_reference: torch.Tensor,
+    cli: argparse.Namespace,
+) -> Tuple[
+    Dict[str, np.ndarray],
+    List[str],
+    List[Dict[str, Any]],
+    str,
+]:
+    """Compute fast per-checkpoint, per-layer representation norm diagnostics.
+
+    All token positions and validation sequences are pooled.  No checkpoint pair
+    is formed, so the cost grows linearly rather than quadratically in the number
+    of checkpoints.
+    """
+
+    norm_names = ("l2", "centered_l2", "spectral")
+    values: Dict[str, Optional[np.ndarray]] = {
+        name: None for name in norm_names
+    }
+    layer_names_reference: Optional[List[str]] = None
+    architecture_reference: Optional[str] = None
+    checkpoint_metadata_list: List[Dict[str, Any]] = []
+
+    for checkpoint_index, checkpoint_path in enumerate(checkpoints):
+        print(
+            "[INFO] representation norms "
+            f"{checkpoint_index + 1}/{len(checkpoints)}: {checkpoint_path.name}",
+            flush=True,
+        )
+
+        model, metadata = reconstruct_model(
+            checkpoint_path,
+            config,
+            init_module,
+            cli.device,
+        )
+
+        layer_names = representation_names(
+            model,
+            cli.representation_mode,
+            cli.include_embedding,
+            cli.include_final_norm,
+        )
+        model_architecture = architecture(model)
+
+        if layer_names_reference is None:
+            layer_names_reference = layer_names
+            architecture_reference = model_architecture
+            for name in norm_names:
+                values[name] = np.full(
+                    (len(checkpoints), len(layer_names_reference)),
+                    np.nan,
+                    dtype=np.float64,
+                )
+        elif (
+            layer_names != layer_names_reference
+            or model_architecture != architecture_reference
+        ):
+            raise RuntimeError(
+                "Architecture or layer names changed between checkpoints."
+            )
+
+        loader = DataLoader(
+            TensorDataset(valid_reference),
+            batch_size=cli.batch_size,
+            shuffle=False,
+            num_workers=0,
+        )
+
+        chunks: Optional[List[List[torch.Tensor]]] = None
+        for (batch,) in loader:
+            representations = forward_representations(
+                model,
+                batch.to(cli.device),
+                cli.representation_mode,
+                cli.include_embedding,
+                cli.include_final_norm,
+            )
+
+            if chunks is None:
+                chunks = [[] for _ in representations]
+
+            for layer_index, representation in enumerate(representations):
+                chunks[layer_index].append(
+                    representation.reshape(-1, representation.shape[-1]).contiguous()
+                )
+
+        if chunks is None:
+            raise RuntimeError("No validation batches generated for representation norms.")
+
+        del model
+        if cli.device.startswith("cuda") and torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        for layer_index, pieces in enumerate(chunks):
+            matrix = torch.cat(pieces, dim=0)
+            layer_values = _representation_norms_from_matrix(
+                matrix,
+                cli.device,
+            )
+            for name in norm_names:
+                assert values[name] is not None
+                values[name][checkpoint_index, layer_index] = layer_values[name]
+            del matrix
+
+        checkpoint_metadata_list.append(metadata)
+
+    if layer_names_reference is None or architecture_reference is None:
+        raise RuntimeError("No checkpoint was processed.")
+
+    return (
+        {name: np.asarray(values[name]) for name in norm_names},
+        layer_names_reference,
+        checkpoint_metadata_list,
+        architecture_reference,
+    )
+
+
 def pairwise_cka(
     temp_dir: Path,
     split: str,
@@ -4108,6 +4313,16 @@ def default_output_name(
 
     if (
         cli.overlap_target
+        == "representation_norm"
+    ):
+        return (
+            f"{base_name}_"
+            "representation_norms_"
+            f"{cli.representation_mode}"
+        )
+
+    if (
+        cli.overlap_target
         == "predictive"
     ):
         return (
@@ -4525,6 +4740,79 @@ def save_predictive(
     )
 
 
+
+def save_representation_norms(
+    output_dir: Path,
+    norm_values: Mapping[str, np.ndarray],
+    layer_names: Sequence[str],
+    reference_metadata: Mapping[str, Any],
+    checkpoints: Sequence[Path],
+    metadata: Sequence[Mapping[str, Any]],
+    config: argparse.Namespace,
+    run_dir: Path,
+    model_architecture: str,
+    cli: argparse.Namespace,
+) -> None:
+    """Save one norm value per checkpoint and representation layer."""
+
+    arrays = common_arrays(
+        checkpoints,
+        metadata,
+        config,
+        run_dir,
+        model_architecture,
+    )
+
+    arrays.update(
+        {
+            "overlap_target": np.asarray("representation_norm"),
+            "representation_mode": np.asarray(cli.representation_mode),
+            "layer_names": np.asarray(layer_names, dtype=object),
+            "norm_names": np.asarray(list(norm_values.keys()), dtype=object),
+            "reference_split": np.asarray("valid"),
+            "reference_source": np.asarray(reference_metadata["reference_source"]),
+            "reference_metadata_json": np.asarray(
+                json.dumps(jsonify(reference_metadata), sort_keys=True)
+            ),
+            "include_embedding": np.asarray(cli.include_embedding),
+            "include_final_norm": np.asarray(cli.include_final_norm),
+            "spectral_power_iters": np.asarray(REPRESENTATION_NORM_SPECTRAL_ITERS),
+        }
+    )
+
+    for name, value in norm_values.items():
+        arrays[f"valid_{name}"] = value
+        arrays[f"test_{name}"] = value  # held-out validation compatibility alias
+
+    output_path = output_dir / "representation_norms.npz"
+    np.savez_compressed(output_path, **arrays)
+
+    metadata_path = output_dir / "metadata.json"
+    metadata_payload = {
+        "run_dir": run_dir,
+        "output_path": output_path,
+        "overlap_target": "representation_norm",
+        "architecture": model_architecture,
+        "representation_mode": cli.representation_mode,
+        "num_checkpoints": len(checkpoints),
+        "layer_names": list(layer_names),
+        "reference": reference_metadata,
+        "norm_definitions": {
+            "l2": "sqrt(mean_rows ||h||_2^2)",
+            "centered_l2": "sqrt(mean_rows ||h-mean(h)||_2^2)",
+            "spectral": (
+                "sqrt(lambda_max(Cov[h])) estimated by deterministic power iteration"
+            ),
+        },
+        "spectral_power_iters": REPRESENTATION_NORM_SPECTRAL_ITERS,
+    }
+    metadata_path.write_text(
+        json.dumps(jsonify(metadata_payload), indent=2, sort_keys=True)
+    )
+
+    print(f"[INFO] saved {output_path}", flush=True)
+
+
 def save_representations(
     output_dir: Path,
     train_cka: np.ndarray,
@@ -4785,6 +5073,7 @@ def parse_args() -> argparse.Namespace:
         "--overlap_target",
         choices=(
             "representations",
+            "representation_norm",
             "weights",
             "predictive",
         ),
@@ -5123,6 +5412,41 @@ def main() -> None:
         source_dir,
         run_dir,
     )
+
+    if cli.overlap_target == "representation_norm":
+        started = time.time()
+        (
+            norm_values,
+            layer_names,
+            checkpoint_metadata_list,
+            model_architecture,
+        ) = compute_representation_norms(
+            checkpoints,
+            config,
+            init_module,
+            valid_reference,
+            cli,
+        )
+
+        save_representation_norms(
+            output_dir,
+            norm_values,
+            layer_names,
+            reference_metadata,
+            checkpoints,
+            checkpoint_metadata_list,
+            config,
+            run_dir,
+            model_architecture,
+            cli,
+        )
+
+        print(
+            "[INFO] total representation-norm time="
+            f"{time.time() - started:.2f}s",
+            flush=True,
+        )
+        return
 
     if cli.temp_root is None:
         temp_root = output_dir

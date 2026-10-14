@@ -2,7 +2,7 @@
 #PBS -N lm_ntp_gpt2
 #PBS -q gpuq-longrun
 #PBS -J 0-1
-#PBS -l select=1:ncpus=4:ngpus=1:mem=256gb
+#PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
 #PBS -l walltime=1000:00:00
 #PBS -j oe
 #PBS -o pbs_logs/
@@ -44,20 +44,20 @@ BLOCK_SIZE="${BLOCK_SIZE:-}"
 # TUPLE_SIZE="${TUPLE_SIZE:-3}"       
 # NUM_LAYERS="${NUM_LAYERS:-5}"       
    
-NUM_FEATURES="${NUM_FEATURES:-8}"   
-NUM_CLASSES="${NUM_CLASSES:-8}"
-NUM_SYNONYMS="${NUM_SYNONYMS:-4}"   
-TUPLE_SIZE="${TUPLE_SIZE:-3}"       
-NUM_LAYERS="${NUM_LAYERS:-4}"
-
 # NUM_FEATURES="${NUM_FEATURES:-8}"   
 # NUM_CLASSES="${NUM_CLASSES:-8}"
-# NUM_SYNONYMS="${NUM_SYNONYMS:-3}"   
+# NUM_SYNONYMS="${NUM_SYNONYMS:-4}"   
 # TUPLE_SIZE="${TUPLE_SIZE:-3}"       
-# NUM_LAYERS="${NUM_LAYERS:-3}"
+# NUM_LAYERS="${NUM_LAYERS:-4}"
+
+NUM_FEATURES="${NUM_FEATURES:-8}"   
+NUM_CLASSES="${NUM_CLASSES:-8}"
+NUM_SYNONYMS="${NUM_SYNONYMS:-3}"   
+TUPLE_SIZE="${TUPLE_SIZE:-3}"       
+NUM_LAYERS="${NUM_LAYERS:-3}"
 
 
-DEPTH="${DEPTH:-4}"
+DEPTH="${DEPTH:-3}"
 
 ######################################################
 
@@ -86,8 +86,8 @@ EVAL_BATCH_SIZE="${EVAL_BATCH_SIZE:-64}"
 VAL_SIZE="${VAL_SIZE:-32768}"
 EVAL_TRAIN_SIZE="${EVAL_TRAIN_SIZE:-16384}"
 EVAL_VAL_SIZE="${EVAL_VAL_SIZE:-16384}"
-MAX_STEPS="${MAX_STEPS:-10000000}"
-LR="${LR:-0.01}"
+MAX_STEPS="${MAX_STEPS:-100000000}"
+LR="${LR:-0.001}"
 L2="${L2:-0.0001}"
 SCHEDULER="${SCHEDULER:-none}"
 DROPOUT="${DROPOUT:-0.0}"

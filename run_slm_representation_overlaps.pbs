@@ -1,12 +1,22 @@
 #!/bin/bash
 #PBS -N slm_overlaps
 #PBS -q gpuq-longrun
-#PBS -l select=1:ncpus=4:ngpus=1:mem=64gb
-#PBS -l walltime=1000:00:00
+#PBS -l select=1:ncpus=4:ngpus=1:mem=32gb
+#PBS -l walltime=100:00:00
 #PBS -j oe
 #PBS -o pbs_logs/
+#PBS -r y
 
 set -eo pipefail
+
+# No array is enabled by default. Use qsub -J only for latent-probe mode.
+# Non-latent analyses (including full CKA and representation norms) run as one job.
+# Pass NUM_CHECKPOINTS=0 for all checkpoints.
+if [ "${OVERLAP_DEFINITION:-}" != "latent" ] && \
+   [ -n "${PBS_ARRAY_INDEX:-${PBS_ARRAYID:-}}" ]; then
+    echo "[ERROR] Array workers require OVERLAP_DEFINITION=latent."
+    exit 1
+fi
 
 # =============================================================================
 # Paths
@@ -28,7 +38,7 @@ fi
 # =============================================================================
 
 RUN_NAME="${RUN_NAME:-slm_uniform_L3_v1}"                                   # Top-level folder under data/.
-RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_1_seed_sample_1_seed_model_1}" # Leaf run folder.
+RUN_ID="${RUN_ID:-rhm_transformer_v2_P_65536_seed_rules_0_seed_sample_0_seed_model_0}" # Leaf run folder.
 RUN_DIR="${RUN_DIR:-}"                                                       # Optional leaf path; overrides RUN_NAME/RUN_ID.
 OUTPUT_NAME="${OUTPUT_NAME:-}"                                               # Folder created under collected_results/.
 
@@ -36,17 +46,17 @@ OUTPUT_NAME="${OUTPUT_NAME:-}"                                               # F
 # Overlap options
 # =============================================================================
 
-OVERLAP_TARGET="${OVERLAP_TARGET:-representations}"                         # representations | weights
+OVERLAP_TARGET="${OVERLAP_TARGET:-representations}"                         # representations | representation_norm | weights | predictive
 METRIC="${METRIC:-gram}"                                                    # gram | feature
 REPRESENTATION_MODE="${REPRESENTATION_MODE:-state}"                  # state | block_update
 REFERENCE_SOURCE="${REFERENCE_SOURCE:-auto}"                                # auto | saved | generate
 
-SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-512}"                               # Fixed train sequences for CKA.
-SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-512}"                               # Fixed validation sequences for CKA.
+SUBSET_TRAIN_SIZE="${SUBSET_TRAIN_SIZE:-2048}"                               # Fixed train sequences for representation analyses.
+SUBSET_VALID_SIZE="${SUBSET_VALID_SIZE:-2048}"                               # Fixed validation sequences for representation analyses.
 SUBSET_SEED="${SUBSET_SEED:-12345}"                                         # Fixed subset/generation seed.
 BATCH_SIZE="${BATCH_SIZE:-256}"                                             # Representation forward batch size.
 
-NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"                                     # 0 means every checkpoint.
+NUM_CHECKPOINTS="${NUM_CHECKPOINTS:-0}"                                     # 0 = every checkpoint; positive = log-spaced subset.
 MAX_STEP="${MAX_STEP:-}"                                                     # Optional largest checkpoint step.
 
 INCLUDE_EMBEDDING="${INCLUDE_EMBEDDING:-1}"                                 # State mode only.
@@ -133,6 +143,9 @@ PY
     fi
 fi
 
+# LAUNCH LATENT WITH
+# qsub -J 0-199 -v SAVING_NAME=slm_TR2_uniform_L3_l3_v1,RUN_NAME=L3_l3_latent_complete_TR2_v1,NUM_CHECKPOINTS=0,OVERLAP_DEFINITION=latent,LATENT_MODE=complete run_slm_representation_overlaps.pbs
+
 # Latent mode: RUN_NAME is output; SAVING_NAME is the checkpoint collection.
 # Submit with qsub -J 0-29 (PBS Pro) or -t 0-29 (Torque).
 if [ "${OVERLAP_DEFINITION:-}" = "latent" ]; then
@@ -145,7 +158,7 @@ if [ "${OVERLAP_DEFINITION:-}" = "latent" ]; then
         --repo_dir "$REPO_DIR" --source_dir "$SOURCE_DIR"
         --run_dir "$LATENT_RUN_DIR" --output_name "$RUN_NAME"
         --collected_results_root "$COLLECTED_RESULTS_ROOT"
-        --overlap_definition latent --latent_mode "${LATENT_MODE:-light}"
+        --overlap_definition latent --latent_mode "${LATENT_MODE:-complete}"
         --checkpoint_index "$LATENT_INDEX" --num_checkpoints "$NUM_CHECKPOINTS"
         --device "$DEVICE" --reference_source "$REFERENCE_SOURCE"
         --subset_train_size "$SUBSET_TRAIN_SIZE" --subset_valid_size "$SUBSET_VALID_SIZE"

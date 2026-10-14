@@ -295,6 +295,111 @@ def _resolve_layer_indices(layer_names, layers=None):
     return np.asarray(out, dtype=int)
 
 
+
+def plot_ntp_representation_norm_vs_time(
+    results_dir,
+    output_name=None,
+    norm="l2",
+    layers=None,
+    time_key="steps",
+    xscale="log",
+    yscale="linear",
+    figsize=(7.2, 4.8),
+    linewidth=2.5,
+    marker=None,
+    title=None,
+    grid=True,
+):
+    """Plot one representation-norm curve per selected layer.
+
+    Available definitions are:
+      l2          = sqrt(mean_rows ||h||_2^2)
+      centered_l2 = sqrt(mean_rows ||h-mean(h)||_2^2)
+      spectral    = sqrt(lambda_max(Cov[h]))
+
+    Rows pool all validation sequences and token positions.  ``test`` is the
+    usual alias of the held-out validation reference in these overlap scripts.
+    """
+
+    base = Path(results_dir).expanduser()
+    if output_name is not None:
+        base = base / str(output_name)
+    path = base if base.is_file() else base / "representation_norms.npz"
+    if not path.is_file():
+        raise FileNotFoundError(f"Could not find representation norm file: {path}")
+
+    aliases = {
+        "l2_norm": "l2",
+        "centered": "centered_l2",
+        "centered_l2_norm": "centered_l2",
+        "spectral_norm": "spectral",
+    }
+    norm = aliases.get(str(norm).lower(), str(norm).lower())
+    allowed = ("l2", "centered_l2", "spectral")
+    if norm not in allowed:
+        raise ValueError(f"norm must be one of {allowed}, got {norm!r}")
+
+    with np.load(path, allow_pickle=True) as data:
+        key = f"test_{norm}"
+        if key not in data.files:
+            key = f"valid_{norm}"
+        if key not in data.files:
+            raise KeyError(f"{key!r} not found. Available keys: {data.files}")
+
+        values = np.asarray(data[key], dtype=float)
+        layer_names = _decode_np_string_array(data["layer_names"])
+        times, actual_time_key = _choose_time_axis(data, time_key=time_key)
+
+    if values.shape != (len(times), len(layer_names)):
+        raise ValueError(
+            f"Expected norm array [K,L]={len(times), len(layer_names)}, got {values.shape}"
+        )
+
+    layer_indices = _resolve_layer_indices(layer_names, layers=layers)
+    fig, ax = plt.subplots(figsize=figsize)
+    colors = plt.get_cmap("turbo")(
+        np.linspace(0.05, 0.95, max(len(layer_names), 2))
+    )
+
+    mask = np.isfinite(times)
+    if xscale == "log":
+        mask &= times > 0
+
+    for layer_index in layer_indices:
+        ax.plot(
+            times[mask],
+            values[mask, layer_index],
+            label=layer_names[layer_index],
+            color=colors[layer_index],
+            linewidth=linewidth,
+            marker=marker,
+        )
+
+    labels = {
+        "l2": r"$\sqrt{\langle ||h||_2^2\rangle}$",
+        "centered_l2": r"$\sqrt{\langle ||h-\bar h||_2^2\rangle}$",
+        "spectral": r"$\sqrt{\lambda_{\max}(\mathrm{Cov}[h])}$",
+    }
+    ax.set_xlabel(actual_time_key)
+    ax.set_ylabel(labels[norm])
+    ax.set_xscale(xscale)
+    ax.set_yscale(yscale)
+    ax.set_title(title or f"Representation norm: {norm}")
+    if grid:
+        ax.grid(alpha=0.25)
+    ax.legend(fontsize=8, frameon=False)
+    fig.tight_layout()
+
+    info = {
+        "path": str(path),
+        "norm": norm,
+        "layer_names": layer_names,
+        "layer_indices": layer_indices,
+        "time_key": actual_time_key,
+    }
+    return fig, ax, info
+
+
 def _resolve_weight_indices(names, selection=None, kind="weight group"):
     """
     Resolve selected weight groups/parameters.
